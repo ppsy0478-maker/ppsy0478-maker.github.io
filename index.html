@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>닛케이로 이긴다 · 일본 대형주 62종목 주식정리</title>
+<meta name="description" content="일본 대형주 62종목을 매일 장 마감 후 정리합니다. 시장 보고서, 업종 ETF, 자금흐름, 뉴스, 대시보드.">
+<meta property="og:title" content="닛케이로 이긴다">
+<meta property="og:description" content="일본 대형주 62종목 주식정리 · 매일 장 마감 후 업데이트">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;800;900&family=Libre+Franklin:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffe3dc; --ink:#1a1817; --teal:#0d7680; --wine:#990f3d;
+    --paper:#fff6f2; --line:rgba(26,24,23,.14);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+  .num{font-family:'Libre Franklin',sans-serif;font-weight:800;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+
+  /* nav */
+  header{border-top:12px solid var(--ink);position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--line)}
+  nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{font-weight:900;font-size:20px;text-decoration:none;letter-spacing:-.01em}
+  .menu{display:flex;gap:28px;font-weight:600;font-size:15px}
+  .menu a{text-decoration:none;opacity:.75}
+  .menu a:hover{opacity:1}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:1fr 1fr;gap:56px;padding:64px 0 72px;align-items:center}
+  .kicker{font-weight:600;font-size:15px;display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .kicker .num{font-size:15px}
+  h1{margin:0 0 22px;font-size:clamp(44px,6vw,72px);line-height:1.08;font-weight:900;letter-spacing:-.025em}
+  .lede{font-size:19px;font-weight:600;margin:0 0 32px;max-width:30em}
+  .cta{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:800;padding:16px 26px;border-radius:999px;font-size:16px;transition:transform .15s}
+  .cta:hover{transform:translateY(-2px)}
+  .cta.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink);margin-left:10px}
+
+  .chartbox{background:var(--paper);border-radius:18px;padding:24px 24px 18px}
+  .legend{display:flex;gap:22px;flex-wrap:wrap;font-size:14px;font-weight:600;margin-bottom:10px}
+  .legend span{display:flex;align-items:center;gap:8px}
+  .sw{width:24px;height:5px;border-radius:3px;display:inline-block}
+  .chartbox svg{width:100%;height:auto;display:block;overflow:visible}
+  .chartfoot{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-top:12px;opacity:.75}
+
+  /* sections */
+  section{padding:72px 0;border-top:1px solid var(--line)}
+  h2{font-size:32px;font-weight:900;letter-spacing:-.02em;margin:0 0 10px}
+  .sub{margin:0 0 36px;font-weight:600;opacity:.75}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{background:var(--paper);border-radius:16px;padding:28px;text-decoration:none;display:flex;flex-direction:column;gap:10px;border:2px solid transparent;transition:border-color .15s, transform .15s}
+  .card:hover{border-color:var(--ink);transform:translateY(-3px)}
+  .tag{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .tag.t{color:var(--teal)} .tag.w{color:var(--wine)}
+  .card h3{margin:0;font-size:21px;font-weight:800;line-height:1.35}
+  .card p{margin:0;font-size:15px;opacity:.8;flex:1}
+  .go{font-weight:800;font-size:14px}
+
+  .topics{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:2px solid var(--ink)}
+  .topic{padding:22px 20px 22px 0;border-bottom:1px solid var(--line)}
+  .topic b{display:block;font-size:18px;font-weight:800;margin-bottom:4px}
+  .topic span{font-size:15px;opacity:.75}
+
+  .about{display:grid;grid-template-columns:1fr 1fr;gap:56px}
+  .about p{font-size:17px;margin:0 0 14px}
+
+  footer{background:var(--ink);color:var(--bg);padding:40px 0;font-size:14px}
+  footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  footer p{margin:0;opacity:.8}
+
+  @media (max-width:860px){
+    .hero,.about{grid-template-columns:1fr;gap:36px}
+    .cards,.topics{grid-template-columns:1fr}
+    .menu{gap:16px;font-size:14px}
+    .menu a.hide-m{display:none}
+    .cta.ghost{margin:12px 0 0}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="#">닛케이로 이긴다</a>
+      <div class="menu">
+        <a href="#dashboard">대시보드</a>
+        <a href="#reports">보고서</a>
+        <a href="#about" class="hide-m">소개</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <div class="kicker"><span>일본 대형주 62종목 · 매일 장 마감 후 업데이트</span><span class="num">9.25 — 11.24</span></div>
+        <h1>일본 대형주<br>62종목<br>주식정리</h1>
+        <p class="lede">시장 보고서 · 업종 ETF · 자금흐름 · 뉴스 · 게시판 동향 · 소니FG 리포트 요약을 한곳에 모았습니다.</p>
+        <a class="cta" href="https://claude.ai/artifact/KzNsgAuNLyz6s6Lr3NP92X" target="_blank" rel="noopener">대시보드 열기 →</a>
+        <a class="cta ghost" href="#reports">보고서 보기</a>
+      </div>
+
+      <div class="chartbox">
+        <div class="legend">
+          <span><i class="sw" style="background:var(--teal)"></i>62종목 (시총 가중)</span>
+          <span><i class="sw" style="background:var(--wine);height:4px"></i>닛케이225</span>
+          <span style="opacity:.7">9.25 = 100</span>
+        </div>
+        <svg viewBox="0 -4 500 308" role="img" aria-label="9.25를 100으로 맞춘 62종목 지수(시가총액 가중)와 닛케이225의 9.25~11.24 흐름">
+          <line x1="0" x2="500" y1="100" y2="100" stroke="#1a1817" stroke-width="1" stroke-dasharray="4 5" opacity=".45"/>
+          <polyline points="0.0,100.0 12.8,108.8 25.6,116.2 38.5,92.5 51.3,51.2 64.1,63.7 76.9,32.5 89.7,18.8 102.6,31.2 115.4,50.0 128.2,50.0 141.0,73.8 153.8,73.8 166.7,136.3 179.5,120.0 192.3,127.5 205.1,142.5 217.9,132.5 230.8,165.0 243.6,168.8 256.4,178.7 269.2,158.8 282.1,145.0 294.9,132.5 307.7,157.5 320.5,161.3 333.3,178.7 346.2,200.0 359.0,268.8 371.8,242.5 384.6,211.3 397.4,196.3 410.3,205.0 423.1,198.8 435.9,226.2 448.7,241.2 461.5,238.7 474.4,230.0 487.2,287.5 500.0,245.0" fill="none" stroke="#990f3d" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          <polyline points="0.0,100.0 12.8,105.0 25.6,133.8 38.5,111.3 51.3,107.5 64.1,117.5 76.9,105.0 89.7,95.0 102.6,110.0 115.4,126.2 128.2,122.5 141.0,117.5 153.8,122.5 166.7,155.0 179.5,130.0 192.3,126.2 205.1,145.0 217.9,130.0 230.8,143.8 243.6,153.7 256.4,148.8 269.2,138.7 282.1,141.2 294.9,133.8 307.7,147.5 320.5,165.0 333.3,170.0 346.2,143.8 359.0,221.3 371.8,187.5 384.6,168.8 397.4,153.7 410.3,150.0 423.1,151.2 435.9,165.0 448.7,192.5 461.5,196.3 474.4,201.2 487.2,247.5 500.0,218.8" fill="none" stroke="#0d7680" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <div class="chartfoot"><span>닛케이225 <b class="num">58,644.63</b> · 11.24 종가</span><span>9.25 → 11.24</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="dashboard">
+    <div class="wrap">
+      <h2>대시보드</h2>
+      <p class="sub">62종목의 등락, 업종별 흐름, 자금 동향을 차트와 표로 한눈에 봅니다.</p>
+      <div class="cards">
+        <a class="card" href="https://claude.ai/artifact/KzNsgAuNLyz6s6Lr3NP92X" target="_blank" rel="noopener">
+          <span class="tag t">Live · 매일 업데이트</span>
+          <h3>62종목 주식정리 대시보드</h3>
+          <p>9.25부터 이어지는 종목별 수익률, 업종 ETF, 자금흐름과 뉴스 정리.</p>
+          <span class="go">열기 →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="reports">
+    <div class="wrap">
+      <h2>시장 보고서</h2>
+      <p class="sub">기간별로 정리한 일본 대형주 시장 분석입니다.</p>
+      <div class="cards">
+        <a class="card" href="https://claude.ai/artifact/ASX6gicjtoqMHjHQjy4ES9" target="_blank" rel="noopener">
+          <span class="tag w">2026.11.18 종가 기준</span>
+          <h3>일본 대형주 62종목 시장 보고서</h3>
+          <p>11월 중순까지의 시장 흐름과 종목별 움직임 정리.</p>
+          <span class="go">읽기 →</span>
+        </a>
+        <a class="card" href="https://claude.ai/artifact/Q3KgPB2qEGTj2NHG4Ag5S5" target="_blank" rel="noopener">
+          <span class="tag w">2026.9.25 — 10.21</span>
+          <h3>일본 대형주 62종목 시장 분석</h3>
+          <p>첫 4주간의 흐름, 업종별 강약과 주요 이슈.</p>
+          <span class="go">읽기 →</span>
+        </a>
+      </div>
+
+      <div style="margin-top:56px">
+        <h2 style="font-size:24px;margin-bottom:18px">다루는 내용</h2>
+        <div class="topics">
+          <div class="topic"><b>시장 보고서</b><span>장 마감 후 시장 전체 요약</span></div>
+          <div class="topic"><b>업종 ETF</b><span>업종별 강약 비교</span></div>
+          <div class="topic"><b>자금흐름</b><span>투자 주체별 매매 동향</span></div>
+          <div class="topic"><b>뉴스</b><span>종목별 주요 소식</span></div>
+          <div class="topic"><b>게시판 동향</b><span>개인 투자자 분위기</span></div>
+          <div class="topic"><b>소니FG 리포트</b><span>증권사 리포트 요약</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="wrap about">
+      <div>
+        <h2>소개</h2>
+      </div>
+      <div>
+        <p>닛케이225를 이루는 일본 대형주 중 62종목을 골라, 2026년 9월 25일부터 매일 장 마감 후 흐름을 기록하고 있습니다.</p>
+        <p>숫자는 대시보드에서, 해석은 보고서에서 확인하세요.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>닛케이로 이긴다</b> · 일본 대형주 62종목 주식정리</p>
+    <p>개인 정리용 자료이며 투자 권유가 아닙니다.</p>
+  </div>
+</footer>
+
+</body>
+</html>
