@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611271731">
+<html lang="ko" data-build="202611271738">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -2918,7 +2918,7 @@
     <div class="vtb-bar"><button class="main" type="button" data-a="play">▶ 브리핑</button><button type="button" data-a="pause">⏸</button><button type="button" data-a="stop">■</button>
       <select data-a="rate" aria-label="말 빠르기"><option value="0.9">느리게</option><option value="1.05" selected>보통</option><option value="1.25">빠르게</option></select>
       <select data-a="voice" aria-label="목소리"></select></div>
-    <div class="vtb-note">목소리는 브라우저 내장 음성(엣지의 'SunHi Online'이 가장 자연스러움) · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
+    <div class="vtb-note">기본 목소리 SunHi(엣지 브라우저에서 사용 가능, 크롬은 Google 음성) · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
   </div>`;
   const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-stage'), sub = root.querySelector('.vtb-sub');
   const vsel = root.querySelector('[data-a="voice"]'), rsel = root.querySelector('[data-a="rate"]');
@@ -2931,13 +2931,13 @@
   const loadVoices = () => {
     if (!synth) return;
     voices = synth.getVoices().filter((v) => /^ko/i.test(v.lang));
-    const rank = (v) => (/Natural|Online/i.test(v.name) ? 0 : /Google/i.test(v.name) ? 1 : 2);
+    const rank = (v) => (/SunHi/i.test(v.name) && /Online|Natural/i.test(v.name) ? 0 : /Natural|Online/i.test(v.name) ? 1 : /Google/i.test(v.name) ? 2 : 3);
     voices.sort((a, b) => rank(a) - rank(b));
     vsel.replaceChildren(...(voices.length ? voices.map((v, i) => new Option(v.name.replace(/Microsoft |\(.*?\)| - Korean.*$/g, '').trim() || v.name, i)) : [new Option('한국어 음성 없음', '')]));
-    try { const s = localStorage.getItem('vtb-voice'); if (s && voices.some((v) => v.name === s)) vsel.value = String(voices.findIndex((v) => v.name === s)); } catch (e) {}
+    try { const s = localStorage.getItem('vtb-voice2'); if (s && voices.some((v) => v.name === s)) vsel.value = String(voices.findIndex((v) => v.name === s)); } catch (e) {}
   };
   if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
-  vsel.onchange = () => { try { localStorage.setItem('vtb-voice', voices[+vsel.value].name); } catch (e) {} };
+  vsel.onchange = () => { try { localStorage.setItem('vtb-voice2', voices[+vsel.value].name); } catch (e) {} };
 
   /* ---------- 캐릭터 ---------- */
   let model = null, talking = false, loading = null;
