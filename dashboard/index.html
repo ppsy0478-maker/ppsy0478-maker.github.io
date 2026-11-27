@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611271605">
+<html lang="ko" data-build="202611271612">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -227,7 +227,7 @@
 
   <nav class="sj-tabs" role="tablist" aria-label="화면">
     <button class="sj-tab" role="tab" data-go="overview" aria-selected="true">개요</button>
-    <button class="sj-tab" role="tab" data-go="live" aria-selected="false">실시간 시세</button>
+    <button class="sj-tab" role="tab" data-go="live" aria-selected="false">장중 시세</button>
     <button class="sj-tab" role="tab" data-go="reports" aria-selected="false">일자별 시장 보고서</button>
     <button class="sj-tab" role="tab" data-go="sonyfg" aria-selected="false">소니파이낸셜 리포트</button>
     <button class="sj-tab" role="tab" data-go="stocks" aria-selected="false">종목</button>
@@ -740,8 +740,11 @@
   </section>
 
   <section id="live" data-tab hidden>
-    <h2 id="h-live">실시간 시세</h2>
-    <p class="sj-muted">TradingView 무료 위젯입니다. 페이지를 열어 두면 저절로 갱신됩니다. 도쿄증권거래소 개별 종목과 닛케이 현물지수는 무료 위젯에서 제공되지 않아, 닛케이는 거의 같이 움직이는 CFD(실시간)와 오사카거래소 선물(지연)로 보여줍니다. 62종목 값과 분석 숫자는 매일 밤 갱신됩니다.</p>
+    <h2 id="h-live">장중 시세</h2>
+    <p class="sj-muted" id="lv-note">평일 도쿄 장중(9:00~15:30)에 30분마다 깃허브가 야후재팬에서 62종목 현재가를 자동으로 받아 옵니다(실행이 몇 분 늦을 수 있음). 페이지를 열어 두면 5분마다 새 값을 확인합니다. 등락은 전일 종가 대비입니다.</p>
+    <div class="sj-stats" id="lv-cards"></div>
+    <div class="sj-tablewrap"><table id="lv-table"></table></div>
+    <p class="sj-muted">아래 차트와 시세는 TradingView 무료 위젯입니다. 무료 위젯은 도쿄 개별 종목과 닛케이 현물지수를 제공하지 않아, 닛케이는 거의 같이 움직이는 CFD(실시간)와 오사카거래소 선물(지연)로 보여줍니다.</p>
     <h3>닛케이225 5분봉 (CFD)</h3>
     <div id="tv-chart" style="min-height:460px"></div>
     <h3>주요 시세</h3>
@@ -2253,6 +2256,39 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tape); else tape();
   document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-go="live"]')) setTimeout(live, 30); }, true);
   if (location.hash === '#live') setTimeout(live, 500);
+})();
+
+/* 장중 시세 표: data/live.json (GitHub Actions가 장중 30분마다 갱신) */
+(() => {
+  const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+  const sg = (v, d = 2) => (v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(d) + '%');
+  const nf = (v, d = 0) => (v == null ? '—' : v.toLocaleString('ko-KR', { minimumFractionDigits: d, maximumFractionDigits: d }));
+  const cls = (e, v) => { e.classList.toggle('up', v > 0); e.classList.toggle('down', v < 0); };
+  let sortK = 'vs_base_pct', dir = -1, LV = null;
+  const render = () => {
+    const cards = document.getElementById('lv-cards'), tbl = document.getElementById('lv-table'); if (!cards || !LV) return;
+    cards.replaceChildren(); tbl.replaceChildren();
+    const nk = LV.nikkei || {};
+    [['닛케이225', nf(nk.price, 2), nk.chg_pct, (nk.time || '') + ' 기준(15분 지연)'], ['62종목 지수(닛케이식)', nf(LV.ns, 1), LV.ns_pct, '전일 종가 ' + LV.base_date.slice(5).replace('-', '.') + ' 대비'],
+      ['62종목 지수(시총 가중)', nf(LV.tp, 1), LV.tp_pct, '상승 ' + LV.up + ' · 하락 ' + LV.down], ['마지막 갱신', LV.updated_jst.slice(11), null, LV.updated_jst.slice(0, 10) + ' (한국·일본 같은 시각)']].forEach(([l, v, p, s]) => {
+      const c = el('div', 'sj-stat'); const vv = el('div', 'sj-stat-v', v); c.append(el('div', 'sj-card-label', l), vv);
+      if (p != null) { const d = el('div', null, sg(p)); cls(d, p); c.append(d); }
+      c.append(el('div', 'sj-muted', s)); cards.append(c);
+    });
+    const C = [['name', '종목', 'l'], ['sector', '업종', 'l'], ['price', '현재가(엔)'], ['chg', '전일 대비'], ['vs_base_pct', '등락률'], ['time', '시각']];
+    const th = el('thead'); const tr = el('tr');
+    C.forEach(([k, lab, c]) => { const h = el('th', c || null, lab + (k === sortK ? (dir < 0 ? ' ▼' : ' ▲') : '')); h.style.cursor = 'pointer'; h.onclick = () => { if (sortK === k) dir = -dir; else { sortK = k; dir = c ? 1 : -1; } render(); }; tr.append(h); });
+    th.append(tr); tbl.append(th);
+    const body = el('tbody');
+    LV.quotes.slice().sort((a, b) => { const x = a[sortK], y = b[sortK]; return typeof x === 'string' ? dir * String(x).localeCompare(String(y), 'ko') : dir * ((x ?? -1e9) - (y ?? -1e9)); }).forEach((q) => {
+      const t = el('tr'); t.append(el('td', 'l', q.name + ' (' + q.code + ')'), el('td', 'l', q.sector), el('td', null, nf(q.price, q.price < 1000 ? 1 : 0)));
+      const c1 = el('td', null, q.chg == null ? '—' : (q.chg > 0 ? '+' : '') + nf(q.chg, Math.abs(q.chg) < 10 ? 1 : 0)); cls(c1, q.chg);
+      const c2 = el('td', null, sg(q.vs_base_pct)); cls(c2, q.vs_base_pct); t.append(c1, c2, el('td', null, q.time || '—')); body.append(t);
+    });
+    tbl.append(body);
+  };
+  const load = async () => { try { const r = await fetch('data/live.json?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) { LV = await r.json(); render(); } } catch (e) {} };
+  load(); setInterval(load, 5 * 60 * 1000);
 })();
 
 (function () {
