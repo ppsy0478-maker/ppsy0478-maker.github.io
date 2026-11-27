@@ -131,7 +131,13 @@
       const c = el('div', 'sj-stat'); c.append(el('div', 'sj-card-label', l), el('div', 'sj-stat-v', v), el('div', 'sj-muted', s)); box.append(c);
     });
   });
-  const hook = () => { const s = document.querySelector('[data-draw="dt-select"]'); if (s && !s.__cr) { s.__cr = 1; s.addEventListener('change', () => setTimeout(() => dash.draw('dt-credit'), 0)); } };
-  document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-go="detail"],#perf,#targets,#stocks')) setTimeout(() => { hook(); dash.draw('dt-credit'); }, 50); }, true);
+  dash.draw('dt-links', (p) => {
+    p.replaceChildren(); const c = detailCode();
+    [['실시간 차트 (야후재팬) ↗', 'https://finance.yahoo.co.jp/quote/' + c + '.T/chart'], ['실시간 시세·호가 ↗', 'https://finance.yahoo.co.jp/quote/' + c + '.T'], ['카부탄 차트 ↗', 'https://kabutan.jp/stock/chart?code=' + c]].forEach(([t, u]) => {
+      const a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.textContent = t; p.append(a);
+    });
+  });
+  const hook = () => { const s = document.querySelector('[data-draw="dt-select"]'); if (s && !s.__cr) { s.__cr = 1; s.addEventListener('change', () => setTimeout(() => { dash.draw('dt-credit'); dash.draw('dt-links'); }, 0)); } };
+  document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-go="detail"],#perf,#targets,#stocks')) setTimeout(() => { hook(); dash.draw('dt-credit'); dash.draw('dt-links'); }, 50); }, true);
   setTimeout(hook, 1500);
 })();

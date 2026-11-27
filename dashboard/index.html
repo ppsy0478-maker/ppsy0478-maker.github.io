@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611271557">
+<html lang="ko" data-build="202611271605">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -109,6 +109,9 @@
   .sj .sj-philo .ph-ko { font-size: 17px; font-weight: 600; line-height: 1.5; margin: 0; }
   .sj .sj-philo .ph-ja { font-size: 13px; opacity: .7; margin: 6px 0 0; }
   .sj .sj-philo .ph-ja a { color: inherit; }
+  .sj .sj-livelinks { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 12px; }
+  .sj .sj-livelinks a { display: inline-block; padding: 6px 12px; border-radius: 999px; border: 1px solid #c0392b; color: #c0392b; text-decoration: none; font-size: 14px; font-weight: 600; }
+  .sj .sj-livelinks a:hover { background: #c0392b; color: #fff; }
   .sj .sj-top { display: flex; gap: 32px; align-items: flex-start; margin: 0 0 var(--cds-gap-md); }
   .sj .sj-top > .sj-lede { flex: 1 1 0; min-width: 0; margin: 0; }
   .sj .sj-video { flex: 1 1 0; min-width: 0; position: sticky; top: 16px; }
@@ -423,6 +426,7 @@
     </div>
     <div class="sj-hits" id="dt-hits" hidden></div>
     <h2 id="h-detail"><span data-draw="dt-name">—</span></h2>
+    <p class="sj-livelinks" data-draw="dt-links"></p>
     <div class="sj-philo" data-draw="dt-philo"></div>
     <div class="sj-stats" id="dt-cards" data-draw="dt-cards"></div>
     <h3>신용·공매도</h3>
@@ -1582,7 +1586,7 @@
   const pctF = (v) => v == null ? '—' : fmtPct(v, true);
   const sortDesc = (k) => (a, b) => (b[k] == null ? -1e12 : b[k]) - (a[k] == null ? -1e12 : a[k]);
   const DT = () => S.detail || '7203';
-  const redrawDetail = () => ['dt-select', 'dt-name', 'dt-philo', 'dt-cards', 'dt-credit', 'dt-price', 'dt-sales', 'dt-profit', 'dt-perf-rows', 'dt-target', 'dt-target-note', 'dt-pie', 'dt-div', 'dt-hist', 'dt-news', 'dt-board', 'dt-outlook', 'dt-trivia'].forEach((n) => dash.draw(n));
+  const redrawDetail = () => ['dt-select', 'dt-name', 'dt-links', 'dt-philo', 'dt-cards', 'dt-credit', 'dt-price', 'dt-sales', 'dt-profit', 'dt-perf-rows', 'dt-target', 'dt-target-note', 'dt-pie', 'dt-div', 'dt-hist', 'dt-news', 'dt-board', 'dt-outlook', 'dt-trivia'].forEach((n) => dash.draw(n));
   const goDetail = (code) => { S.detail = code; open('detail'); redrawDetail(); document.querySelectorAll('#h-detail').forEach((h2) => h2.scrollIntoView({ block: 'start' })); };
   document.querySelectorAll('#perf-sort').forEach((s) => s.addEventListener('change', () => { S.perfSort = s.value; dash.draw('perf-rows'); }));
   dash.draw('perf-rows', (tb) => {
@@ -2215,8 +2219,14 @@
       const c = el('div', 'sj-stat'); c.append(el('div', 'sj-card-label', l), el('div', 'sj-stat-v', v), el('div', 'sj-muted', s)); box.append(c);
     });
   });
-  const hook = () => { const s = document.querySelector('[data-draw="dt-select"]'); if (s && !s.__cr) { s.__cr = 1; s.addEventListener('change', () => setTimeout(() => dash.draw('dt-credit'), 0)); } };
-  document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-go="detail"],#perf,#targets,#stocks')) setTimeout(() => { hook(); dash.draw('dt-credit'); }, 50); }, true);
+  dash.draw('dt-links', (p) => {
+    p.replaceChildren(); const c = detailCode();
+    [['실시간 차트 (야후재팬) ↗', 'https://finance.yahoo.co.jp/quote/' + c + '.T/chart'], ['실시간 시세·호가 ↗', 'https://finance.yahoo.co.jp/quote/' + c + '.T'], ['카부탄 차트 ↗', 'https://kabutan.jp/stock/chart?code=' + c]].forEach(([t, u]) => {
+      const a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.textContent = t; p.append(a);
+    });
+  });
+  const hook = () => { const s = document.querySelector('[data-draw="dt-select"]'); if (s && !s.__cr) { s.__cr = 1; s.addEventListener('change', () => setTimeout(() => { dash.draw('dt-credit'); dash.draw('dt-links'); }, 0)); } };
+  document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-go="detail"],#perf,#targets,#stocks')) setTimeout(() => { hook(); dash.draw('dt-credit'); dash.draw('dt-links'); }, 50); }, true);
   setTimeout(hook, 1500);
 })();
 
