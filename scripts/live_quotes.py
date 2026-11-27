@@ -63,6 +63,22 @@ def main():
            'up': sum(1 for q in ok if q['price'] > base[q['code']]), 'down': sum(1 for q in ok if q['price'] < base[q['code']]),
            'quotes': sorted(qs, key=lambda q: -(q['vs_base_pct'] or 0))}
     json.dump(out, open(DATA + '/live.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
+    # 장중 추이 누적: live_hist.json = 최근 5거래일, 날짜별 30분 간격 점들
+    hp = DATA + '/live_hist.json'
+    try: H = json.load(open(hp, encoding='utf-8'))
+    except Exception: H = []
+    now = datetime.now(timezone(timedelta(hours=9)))
+    day = now.strftime('%Y-%m-%d'); hm = now.strftime('%H:%M')
+    pt = {'t': hm, 'nk': nk and nk['price'], 'nk_pct': nk and nk['chg_pct'], 'ns_pct': out['ns_pct'], 'tp_pct': out['tp_pct'],
+          'p': {q['code']: q['price'] for q in qs}}
+    # 장이 안 열린 날(값이 전일과 같고 시각이 오늘 장중이 아님)은 쌓지 않음
+    live_today = any(q.get('time') and ':' in q['time'] for q in qs) and now.weekday() < 5 and '08:55' <= hm <= '16:30'
+    if live_today and not all(q['price'] == base.get(q['code']) for q in ok):
+        d = next((x for x in H if x['date'] == day), None)
+        if not d: d = {'date': day, 'base_date': idx['date'], 'base': base, 'nk_prev': nk and nk['prev'], 'points': []}; H.append(d)
+        if not d['points'] or d['points'][-1]['t'] != hm: d['points'].append(pt)
+        H = sorted(H, key=lambda x: x['date'])[-5:]
+        json.dump(H, open(hp, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print('ok', out['updated_jst'], out['n'], nk and nk['price'], out['ns_pct'])
 
 if __name__ == '__main__': main()

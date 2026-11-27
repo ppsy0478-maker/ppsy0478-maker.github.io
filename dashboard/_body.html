@@ -1,7 +1,6 @@
 <div class="sj">
   <h1 id="title" style="display:flex;align-items:center;gap:12px">닛케이로 이긴다<img src="../img/title-cat.jpg" alt="" style="height:1.3em;width:auto;border-radius:8px"></h1>
   <p class="sj-sub">일본 대형주 62종목 · 9.25 ~ <span data-draw="last-date">—</span> 종가 기준 · 야후재팬 파이낸스</p>
-  <div id="tv-tape" style="margin:0 0 12px;min-height:46px"></div>
   <div class="sj-top">
   <div class="sj-lede" id="lede">
     <div data-draw="pub-lede">불러오는 중…</div>
@@ -528,14 +527,18 @@
 
   <section id="live" data-tab hidden>
     <h2 id="h-live">장중 시세</h2>
-    <p class="sj-muted" id="lv-note">평일 도쿄 장중(9:00~15:30)에 30분마다 깃허브가 야후재팬에서 62종목 현재가를 자동으로 받아 옵니다(실행이 몇 분 늦을 수 있음). 페이지를 열어 두면 5분마다 새 값을 확인합니다. 등락은 전일 종가 대비입니다.</p>
+    <p class="sj-muted">평일 도쿄 장중(9:00~15:30)에 30분마다 깃허브가 야후재팬에서 62종목 현재가를 자동으로 받아 옵니다(실행이 몇 분 늦을 수 있음). 페이지를 열어 두면 5분마다 새 값을 확인합니다. 등락은 전일 종가 대비입니다.</p>
     <div class="sj-stats" id="lv-cards"></div>
+    <h3>장중 등락률 추이 <span class="sj-muted" id="lv-day"></span></h3>
+    <div class="sj-legend"><span><i class="sj-sw" style="background:#c0392b"></i>닛케이225</span> <span><i class="sj-sw" style="background:#2563eb"></i>62종목(닛케이식)</span> <span><i class="sj-sw" style="background:#16a34a"></i>62종목(시총 가중)</span></div>
+    <div id="lv-trend"></div>
+    <h3>종목별 장중 주가</h3>
+    <div class="sj-controls"><label>종목 <select class="dash-select" id="lv-pick" aria-label="장중 차트 종목"></select></label> <span class="sj-muted">점선은 전일 종가</span></div>
+    <div id="lv-stock"></div>
+    <h3>62종목 등락률 (현재)</h3>
+    <div id="lv-bars"></div>
+    <h3>62종목 현재가</h3>
     <div class="sj-tablewrap"><table id="lv-table"></table></div>
-    <p class="sj-muted">아래 차트와 시세는 TradingView 무료 위젯입니다. 무료 위젯은 도쿄 개별 종목과 닛케이 현물지수를 제공하지 않아, 닛케이는 거의 같이 움직이는 CFD(실시간)와 오사카거래소 선물(지연)로 보여줍니다.</p>
-    <h3>닛케이225 5분봉 (CFD)</h3>
-    <div id="tv-chart" style="min-height:460px"></div>
-    <h3>주요 시세</h3>
-    <div id="tv-quotes"></div>
   </section>
 
   <section id="credit" data-tab hidden>
