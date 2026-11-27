@@ -36,7 +36,69 @@
     return out.filter(Boolean);
   }
 
+
+  /* ---------- 검색 대본 ---------- */
+  const norm = (x) => String(x || '').toLowerCase().replace(/[\s·()（）\-㈜]/g, '').replace(/(주식회사|홀딩스|그룹|hd)$/, '');
+  const pct = (v) => (v > 0 ? '플러스 ' : v < 0 ? '마이너스 ' : '') + Math.abs(v).toFixed(1) + '퍼센트';
+  const won = (v) => Math.round(v).toLocaleString('ko-KR') + '엔';
+  function findStock(q) {
+    const P = rowsOf('prices'); if (!P.length) return null;
+    const last = new Map(), first = new Map(), prev = new Map();
+    const dates = [...new Set(P.map((r) => String(r.date)))].sort(); const L = dates[dates.length - 1], PV = dates[dates.length - 2], F = dates[0];
+    P.forEach((r) => { const d = String(r.date); if (d === L) last.set(String(r.code), r); if (d === PV) prev.set(String(r.code), r); if (d === F) first.set(String(r.code), r); });
+    const n = norm(q); if (!n) return null;
+    const list = [...last.values()];
+    let hit = list.find((r) => String(r.code).toLowerCase() === n) || list.find((r) => norm(String(r.name).replace(/\s*\(구\).*$/, '')) === n)
+      || list.find((r) => norm(r.name).startsWith(n)) || (n.length >= 2 ? list.find((r) => norm(r.name).includes(n)) : null);
+    if (!hit) return null;
+    const c = String(hit.code); return { r: hit, p0: prev.get(c), f0: first.get(c), date: L };
+  }
+  function stockLines(S) {
+    const r = S.r, c = String(r.code), name = String(r.name).replace(/\s*\(구\).*$/, ''), price = +r.price, out = [];
+    const d1 = S.p0 ? (price / +S.p0.price - 1) * 100 : null, dt = S.f0 ? (price / +S.f0.price - 1) * 100 : null;
+    out.push(name + ', ' + r.sector + ' 업종이에요. ' + md(S.date) + ' 종가는 ' + won(price) + (d1 == null ? '' : ', 전일 대비 ' + pct(d1)) + (dt == null ? '' : ', 9월 25일 이후로는 ' + pct(dt)) + '입니다.');
+    const w = rowsOf('week52').find((x) => String(x.code) === c);
+    if (w) { const hi = Math.max(+w.high, price), lo = Math.min(+w.low, price); out.push('52주 범위에서는 아래에서 ' + Math.round((price - lo) / (hi - lo) * 100) + '퍼센트 위치이고, 52주 고가보다 ' + Math.abs((price / hi - 1) * 100).toFixed(1) + '퍼센트 ' + (price >= hi ? '높아요.' : '낮아요.')); }
+    const t = rowsOf('targets').find((x) => String(x.code) === c);
+    if (t && t.target && t.flag) out.push('목표주가 자료는 주식분할이 반영되지 않았을 수 있어서 이번엔 건너뛸게요.');
+    else if (t && t.target) out.push('애널리스트 평균 목표주가는 ' + won(+t.target) + '으로 지금보다 ' + pct((+t.target / price - 1) * 100) + ', 의견은 ' + (t.rating_label || '정보 없음') + '입니다.');
+    const m = rowsOf('margin').filter((x) => String(x.code) === c).sort((a, b) => String(a.date).localeCompare(String(b.date))).pop();
+    if (m && m.ratio !== '' && m.ratio != null) out.push(md(String(m.date)) + ' 기준 신용배율은 ' + (+m.ratio).toFixed(2) + '배예요.');
+    const nw = rowsOf('news').filter((x) => String(x.code) === c).sort((a, b) => String(b.datetime).localeCompare(String(a.datetime))).slice(0, 2);
+    if (nw.length) out.push('최근 뉴스는 ' + nw.map((x) => md(String(x.date)) + ', ' + say(x.headline) + (x.sentiment ? ', ' + x.sentiment : '')).join('. 그리고 ') + '입니다.');
+    const b = rowsOf('board').filter((x) => String(x.code) === c).sort((a, b2) => String(a.date).localeCompare(String(b2.date))).pop();
+    if (b && b.buy_pct !== '' && b.buy_pct != null) out.push('야후 게시판 분위기는 매수 ' + Math.round(+b.buy_pct) + '퍼센트, 매도 ' + Math.round(+b.sell_pct) + '퍼센트로 활동은 ' + (b.activity || '보통') + '이에요.');
+    const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+    const cal = rowsOf('calendar').filter((x) => String(x.code) === c && String(x.date).slice(0, 10) >= today).slice(0, 2);
+    if (cal.length) out.push('다가오는 일정은 ' + cal.map((x) => md(String(x.date).slice(0, 10)) + ' ' + say(String(x.title).replace(name, '').replace(/\s*\([^)]*\)/g, '')) + (x.status === '추정' ? ', 추정' : '')).join(', ') + '입니다.');
+    return out;
+  }
+  function wordLines(q) {
+    const n = String(q).trim(); const hit = (x) => String(x || '').includes(n);
+    const mn = rowsOf('market_news').filter((r) => hit(r.title) || hit(r.summary)).sort((a, b) => String(b.datetime).localeCompare(String(a.datetime))).slice(0, 3);
+    const nw = rowsOf('news').filter((r) => hit(r.headline) || hit(r.detail)).sort((a, b) => String(b.datetime).localeCompare(String(a.datetime))).slice(0, 2);
+    const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+    const cal = rowsOf('calendar').filter((r) => String(r.date).slice(0, 10) >= today && (hit(r.title) || hit(r.kind) || hit(r.note))).slice(0, 3);
+    const out = [];
+    const P = rowsOf('prices'); const ds = [...new Set(P.map((r) => String(r.date)))].sort(); const L = ds[ds.length - 1], PV = ds[ds.length - 2];
+    const pv = new Map(P.filter((r) => String(r.date) === PV).map((r) => [String(r.code), +r.price]));
+    const sec = P.filter((r) => String(r.date) === L && String(r.sector).includes(n)).map((r) => ({ name: String(r.name).replace(/\s*\(구\).*$/, ''), ch: pv.get(String(r.code)) ? (+r.price / pv.get(String(r.code)) - 1) * 100 : 0 })).sort((a, b) => b.ch - a.ch);
+    if (sec.length) out.push(md(L) + ' ' + n + ' 업종 ' + sec.length + '종목은 평균 ' + pct(sec.reduce((a, x) => a + x.ch, 0) / sec.length) + ', ' + sec.slice(0, 3).map((x) => x.name + ' ' + pct(x.ch)).join(', ') + (sec.length > 3 ? ' 순이에요.' : '이에요.'));
+    if (!sec.length && !mn.length && !nw.length && !cal.length) return ['"' + n + '"에 대한 내용은 찾지 못했어요. 종목 이름이나 코드, 또는 반도체·금리 같은 단어로 다시 찾아 주세요.'];
+    out.unshift('"' + n + '" 관련 내용을 찾았어요.');
+    mn.forEach((r) => out.push(md(String(r.date)) + ' 시장 뉴스, ' + say(r.title) + '. ' + say(String(r.summary || '').split(/(?<=다\.)\s*/)[0])));
+    const nm = new Map(rowsOf('prices').map((x) => [String(x.code), String(x.name).replace(/\s*\(구\).*$/, '')]));
+    nw.forEach((r) => out.push(md(String(r.date)) + ' ' + (nm.get(String(r.code)) || '') + ' 뉴스, ' + say(r.headline) + '.'));
+    if (cal.length) out.push('관련 일정은 ' + cal.map((r) => md(String(r.date).slice(0, 10)) + ' ' + say(String(r.title).replace(/\s*\([^)]*\)/g, ''))).join(', ') + '입니다.');
+    return out;
+  }
+  function answer(q) {
+    const clean = String(q || '').replace(/[?？.!]+\s*$/, '').replace(/(에 대해|에대해)?\s*(알려\s*줘|알려줄래|어때|어때요|브리핑|찾아\s*줘|검색|해\s*줘|좀)\s*[?？.!]*$/g, '').replace(/(은|는|이|가)$/, '').trim();
+    if (!clean) return ['무엇을 찾아 드릴까요? 종목 이름이나 단어를 말해 주세요.'];
+    const S = findStock(clean); return S ? stockLines(S) : wordLines(clean);
+  }
   window.__vtbScript = script;
+  window.__vtbAnswer = answer;
   /* ---------- 화면 ---------- */
   const css = document.createElement('style');
   css.textContent = `
@@ -55,13 +117,18 @@
   .vtb-bar button.main{background:#c0392b;color:#fff;border-color:#c0392b;font-weight:700}
   .vtb-bar select{font:inherit;font-size:12.5px;padding:4px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);max-width:120px}
   .vtb-note{font-size:11px;color:var(--color-fg-muted);padding:0 12px 8px}
+  .vtb-q{display:flex;gap:6px;padding:8px 10px 0}
+  .vtb-q input{flex:1;min-width:0;font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg)}
+  .vtb-q button{font-size:15px;padding:4px 9px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);cursor:pointer}
+  .vtb-q button.on{background:#c0392b;border-color:#c0392b}
   .vtb-x{position:absolute;top:8px;right:8px;z-index:2;border:0;background:rgba(0,0,0,.35);color:#fff;border-radius:999px;width:26px;height:26px;cursor:pointer}`;
   document.head.append(css);
   const root = document.createElement('div'); root.className = 'vtb';
   root.innerHTML = `<button class="vtb-fab" type="button">🎙 AI 브리핑</button>
   <div class="vtb-box" hidden>
     <div class="vtb-stage"><button class="vtb-x" type="button" aria-label="접기">✕</button><div class="vtb-fallback"><img src="../img/title-cat.jpg" alt="브리핑 캐릭터"></div></div>
-    <div class="vtb-sub">▶ 를 누르면 오늘 시장을 브리핑해 드려요.</div>
+    <div class="vtb-sub">▶ 를 누르면 오늘 시장을 브리핑해 드려요. 아래에서 종목이나 단어를 검색해도 돼요.</div>
+    <form class="vtb-q"><input type="search" placeholder="예: 소니, 7203, 반도체, 금리" aria-label="브리핑 검색"><button type="submit" aria-label="검색">🔍</button><button type="button" data-a="mic" aria-label="말로 검색">🎤</button></form>
     <div class="vtb-bar"><button class="main" type="button" data-a="play">▶ 브리핑</button><button type="button" data-a="pause">⏸</button><button type="button" data-a="stop">■</button>
       <select data-a="rate" aria-label="말 빠르기"><option value="0.9">느리게</option><option value="1.05" selected>보통</option><option value="1.25">빠르게</option></select>
       <select data-a="voice" aria-label="목소리"></select></div>
@@ -120,9 +187,26 @@
     u.onerror = () => { setTalk(false); };
     synth.speak(u);
   }
+  function playLines(lines) { if (synth) synth.cancel(); queue = lines; idx = 0; speakNext(); }
+  const qf = root.querySelector('.vtb-q'), qi = qf.querySelector('input'), mic = qf.querySelector('[data-a="mic"]');
+  qf.onsubmit = (e) => { e.preventDefault(); if (qi.value.trim()) playLines(answer(qi.value)); };
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) mic.hidden = true; else {
+    let rec = null;
+    mic.onclick = () => {
+      if (rec) { rec.stop(); return; }
+      if (synth) synth.cancel(); setTalk(false);
+      rec = new SR(); rec.lang = 'ko-KR'; rec.interimResults = true; rec.maxAlternatives = 1;
+      mic.classList.add('on'); sub.textContent = '듣고 있어요… 예: "소니 알려줘", "반도체 뉴스"';
+      rec.onresult = (ev) => { const r = ev.results[ev.results.length - 1]; qi.value = r[0].transcript; if (r.isFinal) playLines(answer(qi.value)); };
+      rec.onerror = (ev) => { sub.textContent = ev.error === 'not-allowed' ? '마이크 권한이 꺼져 있어요. 주소창 왼쪽 자물쇠에서 마이크를 허용해 주세요.' : '잘 못 들었어요. 다시 눌러 말해 주세요.'; };
+      rec.onend = () => { mic.classList.remove('on'); rec = null; };
+      rec.start();
+    };
+  }
   root.querySelector('[data-a="play"]').onclick = () => {
     if (synth && synth.paused) { synth.resume(); setTalk(true); return; }
-    if (synth) synth.cancel(); queue = script(); idx = 0; speakNext();
+    playLines(script());
     try { model && model.motion('Idle'); } catch (e) {}
   };
   root.querySelector('[data-a="pause"]').onclick = () => { if (synth && synth.speaking) { synth.pause(); setTalk(false); } };
