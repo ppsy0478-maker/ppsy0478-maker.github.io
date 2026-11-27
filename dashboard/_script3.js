@@ -234,7 +234,7 @@
   const pctF = (v) => v == null ? '—' : fmtPct(v, true);
   const sortDesc = (k) => (a, b) => (b[k] == null ? -1e12 : b[k]) - (a[k] == null ? -1e12 : a[k]);
   const DT = () => S.detail || '7203';
-  const redrawDetail = () => ['dt-select', 'dt-name', 'dt-philo', 'dt-cards', 'dt-price', 'dt-sales', 'dt-profit', 'dt-perf-rows', 'dt-target', 'dt-target-note', 'dt-pie', 'dt-div', 'dt-hist', 'dt-news', 'dt-board', 'dt-outlook', 'dt-trivia'].forEach((n) => dash.draw(n));
+  const redrawDetail = () => ['dt-select', 'dt-name', 'dt-philo', 'dt-cards', 'dt-credit', 'dt-price', 'dt-sales', 'dt-profit', 'dt-perf-rows', 'dt-target', 'dt-target-note', 'dt-pie', 'dt-div', 'dt-hist', 'dt-news', 'dt-board', 'dt-outlook', 'dt-trivia'].forEach((n) => dash.draw(n));
   const goDetail = (code) => { S.detail = code; open('detail'); redrawDetail(); document.querySelectorAll('#h-detail').forEach((h2) => h2.scrollIntoView({ block: 'start' })); };
   document.querySelectorAll('#perf-sort').forEach((s) => s.addEventListener('change', () => { S.perfSort = s.value; dash.draw('perf-rows'); }));
   dash.draw('perf-rows', (tb) => {

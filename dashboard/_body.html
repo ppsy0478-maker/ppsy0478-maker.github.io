@@ -25,6 +25,7 @@
     <button class="sj-tab" role="tab" data-go="ust" aria-selected="false">미국 국채</button>
     <button class="sj-tab" role="tab" data-go="etf" aria-selected="false">업종 ETF</button>
     <button class="sj-tab" role="tab" data-go="flows" aria-selected="false">자금흐름</button>
+    <button class="sj-tab" role="tab" data-go="credit" aria-selected="false">신용·공매도</button>
     <button class="sj-tab" role="tab" data-go="segments" aria-selected="false">사업비중</button>
     <button class="sj-tab" role="tab" data-go="dividends" aria-selected="false">배당</button>
     <button class="sj-tab" role="tab" data-go="history" aria-selected="false">회사 연혁</button>
@@ -212,6 +213,8 @@
     <h2 id="h-detail"><span data-draw="dt-name">—</span></h2>
     <div class="sj-philo" data-draw="dt-philo"></div>
     <div class="sj-stats" id="dt-cards" data-draw="dt-cards"></div>
+    <h3>신용·공매도</h3>
+    <div class="sj-stats" data-draw="dt-credit"></div>
     <h2 id="h-dt-price">주가 (9.25 ~ 최근)</h2>
     <div class="sj-legend" id="dt-price-legend">
       <span><i class="sj-sw" data-series="0"></i>종가</span>
@@ -518,6 +521,21 @@
     <p class="sj-muted">옛 재벌·기업 그룹별로 62종목을 묶었습니다. 회사 이름을 누르면 그 회사로 바뀝니다. 굵게 표시된 것이 지금 보고 있는 회사입니다.</p>
     <div class="sj-groups" data-draw="hist-groups"></div>
     <p class="sj-muted">출처: 각 사 유가증권보고서 「沿革」(IR BANK 게재본)에서 설립·상장·합병·상호 변경과 최근 사건을 골라 한국어로 요약했습니다. 전체 연혁 원문: <a data-draw="hist-link" target="_blank" rel="noopener">—</a></p>
+  </section>
+
+  <section id="credit" data-tab hidden>
+    <h2 id="h-credit">신용·공매도</h2>
+    <div class="sj-stats" data-draw="cr-cards"></div>
+    <h3>시장 전체 공매도 비율 (도쿄증권거래소, 일별)</h3>
+    <div data-draw="cr-chart"></div>
+    <h3>62종목 신용잔고·공매도</h3>
+    <p class="sj-muted">머리글을 누르면 정렬됩니다. 기관 공매도 잔고 칸에 마우스를 올리면 보고한 기관이 보입니다.</p>
+    <div class="sj-tablewrap"><table data-draw="cr-table"></table></div>
+    <h3>업종별 공매도 비율 (33업종)</h3>
+    <div class="sj-tablewrap"><table data-draw="cr-sectors"></table></div>
+    <p class="sj-muted">· 공매도 비율 = 그날 업종 매매대금 중 공매도(가격규제 있음+없음, 신용 공매도 포함)가 차지하는 비중. 출처: 일본거래소(JPX) 「空売り集計(業種別)」 일별 PDF. 종목별 일일 공매도 비율은 무료 공개되지 않아 소속 업종 값을 함께 보여줍니다.<br>
+    · 기관 공매도 잔고 = 발행주식의 0.5% 이상 공매도 포지션을 가진 기관이 금융청·거래소에 보고한 잔고 합계(최근 1년 내 보고, 보고의무 소멸분 제외). 출처: JPX 공표 자료를 모은 karauri.net.<br>
+    · 신용매수잔·매도잔·신용배율(=매수잔÷매도잔) = 매주 금요일 기준, 다음 주 화요일 공표. 매수잔/발행주식 = 신용매수잔 ÷ (시가총액÷주가). 출처: 야후재팬 파이낸스 신용잔 시계열.</p>
   </section>
 
   <section id="nikkei" data-tab hidden>
