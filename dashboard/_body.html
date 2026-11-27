@@ -1,0 +1,555 @@
+<div class="sj">
+  <h1 id="title">닛케이로 이긴다</h1>
+  <p class="sj-sub">일본 대형주 62종목 · 9.25 ~ <span data-draw="last-date">—</span> 종가 기준 · 야후재팬 파이낸스</p>
+  <div class="sj-lede" id="lede">
+    <div data-draw="pub-lede">불러오는 중…</div>
+    <p style="margin:0" class="sj-muted">9.25 이후 누적: 62종목 지수(닛케이식) <b data-draw="kpi" data-fmt="pct" data-field="ns_total">—</b>, 닛케이225 <b data-draw="kpi" data-fmt="pct" data-field="n225_total">—</b>.</p>
+  </div>
+
+  <nav class="sj-tabs" role="tablist" aria-label="화면">
+    <button class="sj-tab" role="tab" data-go="overview" aria-selected="true">개요</button>
+    <button class="sj-tab" role="tab" data-go="reports" aria-selected="false">일자별 시장 보고서</button>
+    <button class="sj-tab" role="tab" data-go="sonyfg" aria-selected="false">소니파이낸셜 리포트</button>
+    <button class="sj-tab" role="tab" data-go="stocks" aria-selected="false">종목</button>
+    <button class="sj-tab" role="tab" data-go="detail" aria-selected="false">종목 상세</button>
+    <button class="sj-tab" role="tab" data-go="perf" aria-selected="false">실적</button>
+    <button class="sj-tab" role="tab" data-go="outlook" aria-selected="false">업황 코멘트</button>
+    <button class="sj-tab" role="tab" data-go="targets" aria-selected="false">목표주가·적정주가</button>
+    <button class="sj-tab" role="tab" data-go="news" aria-selected="false">뉴스</button>
+    <button class="sj-tab" role="tab" data-go="board" aria-selected="false">게시판 동향</button>
+    <button class="sj-tab" role="tab" data-go="ust" aria-selected="false">미국 국채</button>
+    <button class="sj-tab" role="tab" data-go="etf" aria-selected="false">업종 ETF</button>
+    <button class="sj-tab" role="tab" data-go="flows" aria-selected="false">자금흐름</button>
+    <button class="sj-tab" role="tab" data-go="segments" aria-selected="false">사업비중</button>
+    <button class="sj-tab" role="tab" data-go="dividends" aria-selected="false">배당</button>
+    <button class="sj-tab" role="tab" data-go="history" aria-selected="false">회사 연혁</button>
+    <button class="sj-tab" role="tab" data-go="nikkei" aria-selected="false">닛케이 동향</button>
+  </nav>
+
+  <section id="overview" data-tab>
+    <div class="sj-cards">
+      <div class="sj-card" id="card-ns">
+        <div class="sj-card-label">62종목 지수 (닛케이식, 9.25 = 10,000)</div>
+        <div class="sj-big" data-draw="kpi" data-fmt="num1" data-field="ns_last">—</div>
+        <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="ns_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="ns_total">—</span></div>
+      </div>
+      <div class="sj-card" id="card-topix">
+        <div class="sj-card-label">62종목 지수 (TOPIX식, 시가총액 가중, 9.25 = 1,000)</div>
+        <div class="sj-big" data-draw="kpi" data-fmt="num1" data-field="tp_last">—</div>
+        <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="tp_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="tp_total">—</span></div>
+      </div>
+      <div class="sj-card" id="card-n225">
+        <div class="sj-card-label">닛케이225 (실제)</div>
+        <div class="sj-big" data-draw="kpi" data-fmt="int" data-field="n225_last">—</div>
+        <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="n225_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="n225_total">—</span></div>
+      </div>
+    </div>
+    <h2 id="h-index">지수 흐름 (9.25 = 100)</h2>
+    <div class="sj-legend" id="index-legend">
+      <span><i class="sj-sw" data-series="0"></i>62종목 닛케이식</span>
+      <span><i class="sj-sw" data-series="1"></i>62종목 TOPIX식</span>
+      <span><i class="sj-sw" data-series="2"></i>닛케이225 (실제)</span>
+    </div>
+    <div class="sj-chart" id="chart-index" data-draw="index-chart"></div>
+    <div class="sj-two">
+      <div id="best"><h2>최근 3거래일 강세 5종목</h2><ul class="sj-list" data-draw="movers-list" data-pick="best"></ul></div>
+      <div id="worst"><h2>최근 3거래일 약세 5종목</h2><ul class="sj-list" data-draw="movers-list" data-pick="worst"></ul></div>
+    </div>
+  </section>
+
+  <section id="reports" data-tab hidden>
+    <p class="sj-muted">거래일마다 그날 종가 기준으로 시장 보고서를 기록합니다. 수치는 야후재팬 종가로 계산하고, 원인은 株探 기사로 확인한 것만 적었습니다. 보고서를 쓰지 않은 날도 날짜를 고르면 지수·업종·종목 등락은 자동으로 나옵니다.</p>
+    <div class="sj-controls">
+      <label>날짜 <select class="dash-select" data-draw="rp-select" aria-label="보고서 날짜"></select></label>
+      <span>● = 보고서 기록 있음</span>
+    </div>
+    <h2 id="h-report"><span data-draw="rp-title">—</span></h2>
+    <div class="sj-stats" data-draw="rp-stats"></div>
+    <div class="sj-report" data-draw="rp-body"></div>
+    <div class="sj-two">
+      <div>
+        <h2 id="h-rp-sectors">업종별 등락 (전일 대비, 시가총액 가중)</h2>
+        <div class="sj-chart" id="chart-rp-sectors" data-draw="rp-sectors" style="min-height: 120px"></div>
+      </div>
+      <div>
+        <h2 id="h-rp-up">많이 오른 5종목</h2>
+        <ul class="sj-list" data-draw="rp-movers" data-pick="best"></ul>
+        <h2 id="h-rp-down">많이 내린 5종목</h2>
+        <ul class="sj-list" data-draw="rp-movers" data-pick="worst"></ul>
+      </div>
+    </div>
+    <h2 id="h-rp-news">그날의 뉴스</h2>
+    <ul class="sj-news" data-draw="rp-news"></ul>
+    <h2 id="h-rp-list">기록된 보고서</h2>
+    <div class="sj-tablewrap">
+      <table id="rp-table"><thead><tr><th class="l">날짜</th><th class="l">요약</th><th>닛케이225</th><th>62종목(시총 가중)</th><th class="l">강세</th><th class="l">약세</th></tr></thead>
+        <tbody data-draw="rp-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="sonyfg" data-tab hidden>
+    <p class="sj-muted">소니파이낸셜그룹 금융시장조사부가 내는 시장 리포트 8종(일간·주간 환율·주간 신흥국 통화·월간·월 2회·수시 토픽·이노우에 리포트·하우스 뷰)을 9.25 이후 날짜별로 한국어로 요약해 둡니다. '종류'에서 골라 볼 수 있습니다. 원문은 저작물이라 전문을 옮기지 않고, 핵심 내용과 숫자를 우리말로 다시 정리했습니다. 해석이나 의견은 덧붙이지 않았으니, 전문은 원문 링크에서 확인하세요.</p>
+    <div class="sj-controls">
+      <label>날짜 <select class="dash-select" data-draw="sf-select" aria-label="리포트 날짜"></select></label>
+      <label>종류 <select class="dash-select" id="sf-series" aria-label="리포트 종류">
+        <option value="">전체</option>
+        <option value="일간">일간 (Daily Market Report)</option>
+        <option value="주간(달러·유럽)">주간 · 환율 리포트 (달러·유럽)</option>
+        <option value="주간(신흥국)">주간 · 신흥국·자원국 통화</option>
+        <option value="월간">월간 · 매크로 경제·환율 전망</option>
+        <option value="월2회">월 2회 · 글로벌 경제와 금리 주목점</option>
+        <option value="수시(토픽)">수시 · 주목 토픽</option>
+        <option value="수시(이노우에)">수시 · 이노우에 테츠야의 시점</option>
+        <option value="월간(하우스뷰)">월간 · 하우스 뷰 (전망표)</option>
+        <option value="분기">분기 · 장기 하우스 뷰</option>
+      </select></label>
+    </div>
+    <h2 id="h-sf"><span data-draw="sf-title">—</span></h2>
+    <div data-draw="sf-body"></div>
+    <h2 id="h-sf-list">정리한 리포트 목록</h2>
+    <div class="sj-tablewrap">
+      <table id="sf-table"><thead><tr><th class="l">날짜</th><th class="l">종류</th><th class="l">제목</th><th class="l">핵심</th><th class="l">작성</th></tr></thead>
+        <tbody data-draw="sf-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="stocks" data-tab hidden>
+    <div class="sj-controls">
+      <label>업종 <select class="dash-select" data-draw="sector-filter" aria-label="업종"></select></label>
+      <label>정렬 <select class="dash-select" id="sort-select" aria-label="정렬">
+        <option value="chg_3d">최근 3거래일 등락률</option>
+        <option value="chg_total">9.25 이후 등락률</option>
+        <option value="chg_1d">전일 대비</option>
+        <option value="mcap_bil_yen">시가총액</option>
+        <option value="volume">거래량</option>
+      </select></label>
+      <span>행을 누르면 아래에 주가 차트가 나옵니다.</span>
+    </div>
+    <div class="sj-tablewrap">
+      <table id="stock-table"><thead><tr><th class="l">코드</th><th class="l">종목</th><th class="l">업종</th><th>종가(엔)</th><th>전일 대비</th><th>3거래일</th><th>9.25 이후</th><th>거래량</th><th>시가총액(십억엔)</th></tr></thead>
+        <tbody data-draw="stock-rows"></tbody></table>
+    </div>
+    <h2 id="h-stock-chart"><span data-draw="sel-name">—</span> 차트분석</h2>
+    <div class="sj-stats" id="tech-stats">
+      <div class="sj-stat"><div class="sj-card-label">종가(엔)</div><div class="sj-stat-v" data-draw="tech-stat" data-field="price" data-fmt="int">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">5일 이동평균</div><div class="sj-stat-v" data-draw="tech-stat" data-field="ma5" data-fmt="num1">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">20일 이동평균</div><div class="sj-stat-v" data-draw="tech-stat" data-field="ma20" data-fmt="num1">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">20일선 이격도</div><div class="sj-stat-v" data-draw="tech-stat" data-field="gap20" data-fmt="pct">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">RSI(14)</div><div class="sj-stat-v" data-draw="tech-stat" data-field="rsi14" data-fmt="num1">—</div><div class="sj-muted" data-draw="tech-stat" data-field="rsi_state" data-fmt="text">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">추세 (이동평균선)</div><div class="sj-stat-t" data-draw="tech-stat" data-field="trend" data-fmt="text">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">60일 이동평균</div><div class="sj-stat-v" data-draw="tech-stat" data-field="ma60" data-fmt="num1">—</div><div class="sj-muted">이격도 <span data-draw="tech-stat" data-field="gap60" data-fmt="pct">—</span></div></div>
+      <div class="sj-stat"><div class="sj-card-label">MACD (12·26·9)</div><div class="sj-stat-v" data-draw="tech-stat" data-field="macd" data-fmt="num1">—</div><div class="sj-muted" data-draw="tech-stat" data-field="macd_state" data-fmt="text">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">볼린저밴드 %B</div><div class="sj-stat-v" data-draw="tech-stat" data-field="bb_pctb" data-fmt="dec2">—</div><div class="sj-muted" data-draw="tech-stat" data-field="bb_state" data-fmt="text">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">일목균형표</div><div class="sj-stat-t" data-draw="tech-stat" data-field="cloud_state" data-fmt="text">—</div></div>
+      <div class="sj-stat"><div class="sj-card-label">거래량 ÷ 20일 평균</div><div class="sj-stat-v" data-draw="tech-stat" data-field="vol_ratio" data-fmt="x">—</div></div>
+    </div>
+    <div class="sj-controls">
+      <label>가격 차트 <select class="dash-select" id="overlay-select" aria-label="가격 차트 지표">
+        <option value="ma">이동평균선 (5·20·60일)</option>
+        <option value="bb">볼린저밴드 (20일, ±2σ)</option>
+        <option value="ichi">일목균형표</option>
+      </select></label>
+      <label>기간 <select class="dash-select" id="range-select" aria-label="차트 기간">
+        <option value="all">6.19 ~ 최근</option>
+        <option value="recent">9.25 ~ 최근</option>
+      </select></label>
+    </div>
+    <div class="sj-legend" id="tech-legend">
+      <span><i class="sj-sw" data-series="0"></i>종가</span>
+      <span data-ov="ma"><i class="sj-sw" data-series="1"></i>5일선</span>
+      <span data-ov="ma"><i class="sj-sw" data-series="2"></i>20일선</span>
+      <span data-ov="ma"><i class="sj-sw" data-series="4"></i>60일선</span>
+      <span data-ov="bb" hidden><i class="sj-sw" data-series="2"></i>중심선(20일)</span>
+      <span data-ov="bb" hidden><i class="sj-sw sj-sw-band"></i>±2σ 밴드</span>
+      <span data-ov="ichi" hidden><i class="sj-sw" data-series="1"></i>전환선(9)</span>
+      <span data-ov="ichi" hidden><i class="sj-sw" data-series="2"></i>기준선(26)</span>
+      <span data-ov="ichi" hidden><i class="sj-sw sj-sw-up"></i>구름(상승)</span>
+      <span data-ov="ichi" hidden><i class="sj-sw sj-sw-dn"></i>구름(하락)</span>
+      <span><i class="sj-sw sj-sw-muted"></i>거래량</span>
+      <span><i class="sj-sw" data-series="3"></i>RSI(14)</span>
+      <span><i class="sj-sw" data-series="0"></i>MACD</span>
+      <span><i class="sj-sw" data-series="1"></i>시그널</span>
+    </div>
+    <div class="sj-chart sj-tech" id="chart-stock" data-draw="stock-chart"></div>
+    <p class="sj-muted">6.19~9.24는 야후재팬 조정후 종가(주식분할 반영)로 지표 계산에만 쓰고, 거래량은 9.25부터 있습니다. 일목균형표는 고가·저가 대신 종가로 계산한 근사치이고, 구름(선행스팬)은 10.14부터 그려집니다. RSI 점선은 70·30 기준선입니다.</p>
+    <h2 id="h-tech-table">62종목 차트 신호</h2>
+    <div class="sj-controls">
+      <label>신호 <select class="dash-select" id="signal-select" aria-label="신호">
+        <option value="">전체</option>
+        <option value="골든크로스">골든크로스 (최근 3일)</option>
+        <option value="데드크로스">데드크로스 (최근 3일)</option>
+        <option value="정배열">정배열</option>
+        <option value="역배열">역배열</option>
+        <option value="과매수">RSI 과매수</option>
+        <option value="과매도">RSI 과매도</option>
+        <option value="상향돌파">MACD 상향돌파 (최근 3일)</option>
+        <option value="하향돌파">MACD 하향돌파 (최근 3일)</option>
+        <option value="상단">볼린저 상단 근접·돌파</option>
+        <option value="하단">볼린저 하단 근접·이탈</option>
+        <option value="구름 위">일목 구름 위</option>
+        <option value="구름 아래">일목 구름 아래</option>
+      </select></label>
+      <span>행을 누르면 위 차트가 그 종목으로 바뀝니다.</span>
+    </div>
+    <div class="sj-tablewrap">
+      <table id="tech-table"><thead><tr><th class="l">코드</th><th class="l">종목</th><th>종가</th><th>20일선 이격도</th><th>60일선 이격도</th><th>RSI(14)</th><th class="l">RSI 판단</th><th class="l">추세 (5·20일선)</th><th class="l">MACD</th><th class="l">볼린저</th><th class="l">일목</th><th>거래량 배수</th></tr></thead>
+        <tbody data-draw="tech-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="detail" data-tab hidden>
+    <div class="sj-controls">
+      <label>검색 <input type="search" id="dt-search" class="sj-search" placeholder="종목명·코드·업종 (예: 소니, 7203, 은행)" aria-label="종목 검색" autocomplete="off"></label>
+      <label>종목 <select class="dash-select" data-draw="dt-select" aria-label="상세 종목"></select></label>
+      <span>실적·목표주가 표에서 행을 눌러도 이 화면으로 옵니다.</span>
+    </div>
+    <div class="sj-hits" id="dt-hits" hidden></div>
+    <h2 id="h-detail"><span data-draw="dt-name">—</span></h2>
+    <div class="sj-stats" id="dt-cards" data-draw="dt-cards"></div>
+    <h2 id="h-dt-price">주가 (9.25 ~ 최근)</h2>
+    <div class="sj-legend" id="dt-price-legend">
+      <span><i class="sj-sw" data-series="0"></i>종가</span>
+      <span><i class="sj-sw" data-series="1"></i>20일선</span>
+      <span><i class="sj-sw" data-series="2"></i>60일선</span>
+    </div>
+    <div class="sj-chart" id="dt-price" data-draw="dt-price"></div>
+    <h2 id="h-dt-perf">실적 추이 (2024 ~ 회사 예상, 억엔)</h2>
+    <div class="sj-two">
+      <div>
+        <div class="sj-card-label">매출액 (은행·보험은 경상수익 등) · 흐린 막대 = 회사 예상</div>
+        <div class="sj-chart" id="dt-sales" data-draw="dt-sales"></div>
+      </div>
+      <div>
+        <div class="sj-legend" id="dt-profit-legend">
+          <span><i class="sj-sw" data-series="0"></i>영업이익</span>
+          <span><i class="sj-sw" data-series="1"></i>경상(세전)이익</span>
+          <span><i class="sj-sw" data-series="2"></i>순이익</span>
+          <span>점선 = 회사 예상</span>
+        </div>
+        <div class="sj-chart" id="dt-profit" data-draw="dt-profit"></div>
+      </div>
+    </div>
+    <div class="sj-tablewrap">
+      <table id="dt-perf-table"><thead><tr><th class="l">결산기</th><th>매출액</th><th>영업이익</th><th>경상(세전)이익</th><th>순이익</th><th>순이익 증감</th><th class="l">회계기준</th></tr></thead>
+        <tbody data-draw="dt-perf-rows"></tbody></table>
+    </div>
+    <h2 id="h-dt-target">목표주가·적정주가</h2>
+    <div class="sj-chart" id="dt-target" data-draw="dt-target" style="min-height: 120px"></div>
+    <p class="sj-muted" data-draw="dt-target-note">—</p>
+    <div class="sj-two">
+      <div>
+        <h2>사업비중</h2>
+        <div class="sj-pie" id="dt-pie" data-draw="dt-pie"></div>
+      </div>
+      <div>
+        <h2>배당</h2>
+        <ul class="sj-list" data-draw="dt-div"></ul>
+        <h2>최근 연혁</h2>
+        <ol class="sj-timeline" data-draw="dt-hist"></ol>
+      </div>
+    </div>
+    <h2 id="h-dt-trivia">토막지식</h2>
+    <div class="sj-trivia" data-draw="dt-trivia"></div>
+    <p><button type="button" class="sj-btn" id="dt-go-hist">가계도·그룹 관계 보기 →</button></p>
+    <h2 id="h-dt-outlook">업황 코멘트 (최근 결산 공시)</h2>
+    <div data-draw="dt-outlook"></div>
+    <h2 id="h-dt-board">게시판 동향 (야후재팬)</h2>
+    <div data-draw="dt-board"></div>
+    <h2 id="h-dt-news">최근 뉴스 (호재·악재)</h2>
+    <ul class="sj-news" data-draw="dt-news"></ul>
+  </section>
+
+  <section id="perf" data-tab hidden>
+    <p class="sj-muted">야후재팬 업적(통기) 2026.11.18 조회. 단위 억엔(=1억 엔). '예상'은 회사가 낸 이번 결산기 예상치이고, 증감은 직전 실적 대비입니다. 은행·보험·종합상사는 매출 대신 경상수익·수익을 쓰며 영업이익을 공시하지 않아 비어 있을 수 있습니다.</p>
+    <div class="sj-controls">
+      <label>정렬 <select class="dash-select" id="perf-sort" aria-label="실적 정렬">
+        <option value="net_g">순이익 예상 증감률</option>
+        <option value="sales_g">매출 예상 증감률</option>
+        <option value="op_g">영업이익 예상 증감률</option>
+        <option value="net_2y">순이익 2024기 → 직전기</option>
+        <option value="net_last">직전기 순이익</option>
+      </select></label>
+      <span>행을 누르면 종목 상세로 이동합니다.</span>
+    </div>
+    <div class="sj-tablewrap">
+      <table id="perf-table"><thead><tr><th class="l">코드</th><th class="l">종목</th><th class="l">예상 결산기</th><th>매출 직전</th><th>매출 예상</th><th>증감</th><th>영업이익 직전</th><th>영업이익 예상</th><th>증감</th><th>순이익 직전</th><th>순이익 예상</th><th>증감</th><th>순이익 2024기 대비</th></tr></thead>
+        <tbody data-draw="perf-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="outlook" data-tab hidden>
+    <p class="sj-muted">각 회사의 최근 결산 공시(TDnet 決算短信, 단신에 설명이 없으면 같은 날 낸 결산 설명자료)에서 회사가 업계·시장 환경을 어떻게 설명했는지 읽고 한국어로 요약했습니다. 판정은 회사 서술 기준입니다: <b>개선</b> = 수요·시황이 좋아지고 있다고 서술 · <b>양호</b> = 수요 견조(또는 자사 판매 호조 위주) · <b>중립</b> = 거시경제만 언급 · <b>혼조</b> = 좋은 면과 나쁜 면을 함께 서술 · <b>악화</b> = 수요 약화·비용 상승 등 어려운 환경으로 서술 · <b>언급 없음</b> = 공시에 업계 설명이 없음. '연간 전망'은 회사 실적 예상 수정 방향(株探 기사로 확인)입니다. 원문을 옮기지 않고 요약만 했고, 투자 판단의 근거가 아닙니다. TDnet 원문 링크는 공시 후 약 1개월이 지나면 열리지 않을 수 있습니다.</p>
+    <div class="sj-stats" data-draw="ol-stats"></div>
+    <h2 id="h-ol-sector">업종별 업황 점수 (개선 +2 · 양호 +1 · 중립·혼조 0 · 악화 −2, 언급 없음 제외 평균)</h2>
+    <div class="sj-chart" id="chart-ol" data-draw="ol-sector" style="min-height: 120px"></div>
+    <h2 id="h-ol-card"><span data-draw="ol-title">—</span></h2>
+    <div data-draw="ol-card"></div>
+    <h2 id="h-ol-table">종목별 업황 코멘트</h2>
+    <div class="sj-controls">
+      <label>판정 <select class="dash-select" id="ol-verdict" aria-label="업황 판정">
+        <option value="">전체</option><option value="개선">개선</option><option value="양호">양호</option><option value="중립">중립</option><option value="혼조">혼조</option><option value="악화">악화</option><option value="언급 없음">언급 없음</option>
+      </select></label>
+      <label>정렬 <select class="dash-select" id="ol-sort" aria-label="업황 정렬">
+        <option value="score">업황 점수</option><option value="sector">업종</option><option value="chg_total">9.25 이후 주가</option><option value="doc_date">공시일 (최근 순)</option>
+      </select></label>
+      <span>행이나 위 숫자 카드를 누르면 바뀝니다.</span>
+    </div>
+    <div class="sj-tablewrap">
+      <table id="ol-table"><thead><tr><th class="l">종목</th><th class="l">업종</th><th class="l">산업</th><th class="l">업황 판정</th><th class="l">연간 전망</th><th class="l">회사가 쓴 업계 환경 (요약)</th><th class="l">공시일</th><th>9.25 이후</th></tr></thead>
+        <tbody data-draw="ol-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="targets" data-tab hidden>
+    <p class="sj-muted">출처: 株予報Pro(kabuyoho.jp) 리포트, 2026.11.17 기준. 목표주가는 애널리스트 평균, 적정주가(이론주가)는 PBR·PER 기준 범위(하한~상한)입니다. 괴리율은 최근 종가 대비. 괴리율이 80% 이상인 종목은 주식분할 미반영이나 오래된 목표가일 수 있어 '확인 필요'로 표시했습니다.</p>
+    <div class="sj-controls">
+      <label>정렬 <select class="dash-select" id="tg-sort" aria-label="목표주가 정렬">
+        <option value="up_target">목표주가 괴리율</option><option value="up_per">PER 이론주가 괴리율</option><option value="up_pbr">PBR 이론주가 괴리율</option><option value="rating">애널리스트 레이팅</option><option value="analysts">애널리스트 수</option>
+      </select></label>
+      <label>목표 판단 <select class="dash-select" id="tg-view" aria-label="목표 판단">
+        <option value="">전체</option><option value="저평가">저평가</option><option value="다소 저평가">다소 저평가</option><option value="적정">적정</option><option value="다소 고평가">다소 고평가</option><option value="고평가">고평가</option>
+      </select></label>
+      <span>행을 누르면 종목 상세로 이동합니다.</span>
+    </div>
+    <div class="sj-tablewrap">
+      <table id="tg-table"><thead><tr><th class="l">코드</th><th class="l">종목</th><th>종가</th><th>평균 목표주가</th><th>괴리율</th><th class="l">목표 판단</th><th>레이팅(5점)</th><th class="l">의견</th><th class="l">매수·중립·매도</th><th>PBR 이론주가</th><th class="l">범위</th><th>괴리율</th><th>PER 이론주가</th><th class="l">범위</th><th>괴리율</th><th class="l">비고</th></tr></thead>
+        <tbody data-draw="tg-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="news" data-tab hidden>
+    <p class="sj-muted">출처: 株探(kabutan.jp) 종목 뉴스·적시공시·애널리스트 레이팅 기사, 9.25 ~ 최근. 11.20 장 마감 후 기사부터는 본문을 읽고 제목 아래에 배경·숫자·당일 주가 반응을 2~3문장으로 덧붙였습니다. 회사와 직접 관련된 기사만 골라 한국어로 요약했고, 주가에 미친 영향 기준으로 호재·악재·중립을 표시했습니다. 제목을 누르면 원문이 열립니다.</p>
+    <div class="sj-controls">
+      <label>종목 <select class="dash-select" data-draw="news-select" aria-label="뉴스 종목"></select></label>
+      <label>구분 <select class="dash-select" id="news-kind" aria-label="호재 악재">
+        <option value="">전체</option><option value="호재">호재</option><option value="악재">악재</option><option value="중립">중립</option>
+      </select></label>
+    </div>
+    <h2 id="h-news"><span data-draw="news-title">—</span></h2>
+    <p class="sj-muted" data-draw="news-count">—</p>
+    <ul class="sj-news" data-draw="news-list"></ul>
+    <h2 id="h-news-table">종목별 뉴스 온도</h2>
+    <p class="sj-muted">호재 − 악재 건수가 큰 순서. 행을 누르면 위 목록이 그 종목으로 바뀝니다.</p>
+    <div class="sj-tablewrap">
+      <table id="news-table"><thead><tr><th class="l">코드</th><th class="l">종목</th><th>호재</th><th>악재</th><th>중립</th><th>호재−악재</th><th class="l">최근</th><th class="l">최근 뉴스</th></tr></thead>
+        <tbody data-draw="news-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="board" data-tab hidden>
+    <p class="sj-muted">야후재팬 파이낸스 종목 게시판(일반 게시글)을 날마다 읽어 분위기를 정리합니다. 감정 비율은 게시판의 '모두의 평가'(최근 1주일 동안 글쓴이가 고른 강한 매수~강한 매도)이고, 활동량은 첫 페이지 글들이 몇 시간에 걸쳐 올라왔는지로 계산했습니다. 글이 적은 게시판은 몇 표만으로 비율이 크게 흔들리므로 '표본 적음'으로 표시합니다. 개별 글의 원문과 작성자는 싣지 않고 주제만 요약합니다. 게시판 분위기는 투자 판단의 근거가 아닙니다.</p>
+    <div class="sj-controls">
+      <label>날짜 <select class="dash-select" data-draw="bd-select" aria-label="게시판 날짜"></select></label>
+      <label>정렬 <select class="dash-select" id="bd-sort" aria-label="게시판 정렬">
+        <option value="rate_h">활동량(시간당 글 수)</option><option value="net">매수−매도 감정</option><option value="sell_pct">매도 감정 비율</option>
+      </select></label>
+    </div>
+    <h2 id="h-board"><span data-draw="bd-title">—</span></h2>
+    <div data-draw="bd-note"></div>
+    <h2 id="h-board-co">회사별 게시판</h2>
+    <div class="sj-controls">
+      <label>회사 <select class="dash-select" data-draw="bd-co-select" aria-label="게시판 회사"></select></label>
+      <span>아래 막대나 표의 행을 눌러도 바뀝니다.</span>
+    </div>
+    <div data-draw="bd-co"></div>
+    <h2 id="h-board-bars">종목별 감정 (매수 − 매도, %p)</h2>
+    <div class="sj-chart" id="chart-board" data-draw="bd-bars" style="min-height: 120px"></div>
+    <div class="sj-tablewrap">
+      <table id="bd-table"><thead><tr><th class="l">종목</th><th>매수</th><th>관망</th><th>매도</th><th>매수−매도</th><th>시간당 글</th><th>24시간 글</th><th class="l">활동</th><th class="l">많이 나온 주제</th><th class="l">최근 글 요약</th></tr></thead>
+        <tbody data-draw="bd-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="ust" data-tab hidden>
+    <p class="sj-muted">미국 재무부 일별 국채 금리(Daily Treasury Par Yield Curve, 장 마감 기준)입니다. 날짜는 미국 날짜이고, bp = 0.01%p. 날짜별 사건 설명은 소니파이낸셜그룹 Daily Market Report 채권 부분을 요약한 것이라, 장중 시세를 쓰는 리포트 숫자와는 조금 다를 수 있습니다.</p>
+    <h2 id="h-ust"><span data-draw="ust-title">—</span></h2>
+    <div data-draw="ust-note"></div>
+    <div class="sj-stats" data-draw="ust-cards"></div>
+    <div class="sj-controls">
+      <label>기간 <select class="dash-select" id="ust-range" aria-label="국채 차트 기간">
+        <option value="recent">9.25 ~ 최근</option><option value="ytd">2026.1 ~ 최근</option>
+      </select></label>
+    </div>
+    <h2 id="h-ust-curve">2년 · 10년 · 30년물 금리 (%)</h2>
+    <div class="sj-legend" id="ust-legend"><span><i class="sj-sw" data-series="0"></i>2년물</span><span><i class="sj-sw" data-series="1"></i>10년물</span><span><i class="sj-sw" data-series="2"></i>30년물</span></div>
+    <div class="sj-chart" id="chart-ust" data-draw="ust-chart"></div>
+    <h2 id="h-ust30">30년물 자세히</h2>
+    <div class="sj-stats" data-draw="ust30-cards"></div>
+    <div class="sj-two">
+      <div><div class="sj-card-label">30년물 금리 (%) · 점선 = 9.25</div><div class="sj-chart" id="chart-ust30" data-draw="ust30-chart"></div></div>
+      <div>
+        <div class="sj-legend" id="ust-sp-legend"><span><i class="sj-sw" data-series="0"></i>30년 − 2년</span><span><i class="sj-sw" data-series="1"></i>30년 − 10년</span><span><i class="sj-sw" data-series="3"></i>30년 − 20년</span></div>
+        <div class="sj-chart" id="chart-ust-sp" data-draw="ust-sp-chart"></div>
+      </div>
+    </div>
+    <h2 id="h-ust-ev">30년물을 움직인 날 (최근 순)</h2>
+    <div class="sj-tablewrap">
+      <table id="ust-ev"><thead><tr><th class="l">날짜(미국)</th><th>30년물</th><th>전일 대비</th><th>10년물</th><th>2년물</th><th class="l">무슨 일이 있었나</th></tr></thead>
+        <tbody data-draw="ust-ev-rows"></tbody></table>
+    </div>
+    <h2 id="h-ust-table">일별 금리 (최근 순, %)</h2>
+    <div class="sj-tablewrap">
+      <table id="ust-table"><thead><tr><th class="l">날짜</th><th>3개월</th><th>2년</th><th>5년</th><th>10년</th><th>20년</th><th>30년</th><th>30년 전일 대비(bp)</th><th>30−2(%p)</th><th>30−10(%p)</th></tr></thead>
+        <tbody data-draw="ust-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="etf" data-tab hidden>
+    <p class="sj-muted">62종목을 업종별로 묶어 만든 가상 ETF입니다. 9.25 = 100으로 놓고 최근 거래일까지 매일 지수를 계산했습니다. 시가총액 가중 = 9.25 시가총액 비중대로 사서 보유(실제 업종 ETF 방식), 동일 가중 = 종목마다 같은 금액을 매일 맞춰 보유. 9.25 이후 상장 종목은 첫 거래일부터 편입합니다.</p>
+    <h2 id="h-etf-bars">업종 ETF 수익률 (9.25 → <span data-draw="last-date">—</span>, 시가총액 가중)</h2>
+    <div class="sj-chart" id="chart-etf" data-draw="etf-bars"></div>
+    <div class="sj-tablewrap">
+      <table id="etf-table"><thead><tr><th class="l">업종 ETF</th><th>종목 수</th><th>수익률 (시총 가중)</th><th>수익률 (동일 가중)</th><th>최근 3거래일</th><th>기간 고점</th><th class="l">고점일</th><th>고점 대비</th><th>최대 낙폭</th><th class="l">최고 종목</th><th class="l">최저 종목</th></tr></thead>
+        <tbody data-draw="etf-rows"></tbody></table>
+    </div>
+    <h2 id="h-etf-line"><span data-draw="etf-name">—</span> ETF 지수 흐름 (9.25 = 100)</h2>
+    <div class="sj-controls">
+      <label>업종 <select class="dash-select" data-draw="etf-select" aria-label="업종 ETF"></select></label>
+      <span>위 표의 행을 눌러도 바뀝니다.</span>
+    </div>
+    <div class="sj-legend" id="etf-legend">
+      <span><i class="sj-sw" data-series="0"></i>시가총액 가중</span>
+      <span><i class="sj-sw" data-series="1"></i>동일 가중</span>
+      <span><i class="sj-sw" data-series="2"></i>62종목 전체 (시총 가중)</span>
+    </div>
+    <div class="sj-chart" id="chart-etf-line" data-draw="etf-line"></div>
+    <h2 id="h-etf-members">구성 종목과 기여도</h2>
+    <div class="sj-tablewrap">
+      <table id="etf-members"><thead><tr><th class="l">코드</th><th class="l">종목</th><th>9.25 비중</th><th>현재 비중</th><th>수익률</th><th>ETF 수익률 기여 (%p)</th></tr></thead>
+        <tbody data-draw="etf-member-rows"></tbody></table>
+    </div>
+    <p class="sj-muted">기여도 = 9.25 비중 × 종목 수익률. 시가총액 가중 ETF 수익률은 기여도의 합과 같습니다. 시가총액은 9.25 시가총액에 주가 등락률을 이어 붙인 추정치입니다.</p>
+  </section>
+
+  <section id="flows" data-tab hidden>
+    <p class="sj-muted">구간 ④ = 11.4 ~ 최근 거래일. 순자금흐름 = (상승일 거래대금 − 하락일 거래대금) ÷ 구간 전체 거래대금. 거래량 비율 = ④ 평균 거래량 ÷ ①(9.25~10.8) 평균 거래량.</p>
+    <h2 id="h-sector-flow">업종별 순자금흐름 (구간 ④)</h2>
+    <div class="sj-chart" id="chart-sector" data-draw="sector-chart"></div>
+    <div class="sj-tablewrap">
+      <table id="sector-table"><thead><tr><th class="l">업종</th><th>종목 수</th><th>순자금흐름 ④</th><th>평균 수익률 ④</th><th>거래량 비율</th><th class="l">판단</th></tr></thead>
+        <tbody data-draw="sector-rows"></tbody></table>
+    </div>
+    <h2 id="h-stock-flow">종목별 판단 (구간 ④)</h2>
+    <div class="sj-controls">
+      <label>판단 <select class="dash-select" id="verdict-select" aria-label="판단">
+        <option value="">전체</option>
+        <option value="매수세 유입">매수세 유입 (가격↑·거래량↑)</option>
+        <option value="매도 압력">매도 압력 (가격↓·거래량↑)</option>
+        <option value="조용한 상승">조용한 상승 (가격↑·거래량↓)</option>
+        <option value="관심 감소">관심 감소 (가격↓·거래량↓)</option>
+      </select></label>
+    </div>
+    <div class="sj-tablewrap">
+      <table id="flow-table"><thead><tr><th class="l">코드</th><th class="l">종목</th><th class="l">업종</th><th>거래량 비율</th><th>수익률 ④</th><th>순자금흐름 ④</th><th class="l">판단</th></tr></thead>
+        <tbody data-draw="flow-rows"></tbody></table>
+    </div>
+  </section>
+
+  <section id="segments" data-tab hidden>
+    <div class="sj-controls">
+      <label>종목 <select class="dash-select" data-draw="seg-select" aria-label="종목"></select></label>
+    </div>
+    <p class="sj-muted"><span data-draw="seg-basis">—</span></p>
+    <div class="sj-two">
+      <div class="sj-pie" id="chart-pie" data-draw="seg-pie"></div>
+      <div>
+        <table id="seg-table"><thead><tr><th class="l">부문</th><th>비중(%)</th><th>매출(억엔, 약)</th></tr></thead>
+          <tbody data-draw="seg-rows"></tbody></table>
+        <p class="sj-muted" data-draw="seg-total">—</p>
+      </div>
+    </div>
+    <div data-draw="seg-detail"></div>
+    <p class="sj-muted">출처: 株予報Pro(kabuyoho.jp) 「セグメント売上構成」. 사이트에 표가 없는 9종목은 은행 5곳 = 각사 2026.3기 결산자료(업무조이익 비중, 유초은행은 수익 구성), 레이저텍·닌텐도·가루비·키옥시아 = 会社四季報(야후재팬). 세부 내역은 각사 결산 설명자료·유가증권보고서.</p>
+  </section>
+
+  <section id="dividends" data-tab hidden>
+    <p class="sj-muted">1주당 배당금(엔)은 야후재팬 배당 정보의 회사 예상·실적(2026.11.18 조회)입니다. 권리확정일은 각 사 결산·중간 분기말로 보고, 권리부 최종일(이날까지 사야 배당을 받음)과 배당락일은 T+2 결제와 일본 영업일로 계산했습니다. 실제 기준일은 회사 공시로 확인하세요.</p>
+    <h2 id="h-exdiv">다가오는 배당락일</h2>
+    <div class="sj-tablewrap">
+      <table id="exdiv-table"><thead><tr><th class="l">배당락일</th><th class="l">권리부 최종일</th><th class="l">권리확정일</th><th class="l">종목</th><th class="l">회차</th><th>예상 배당(엔)</th><th>회차 수익률</th></tr></thead>
+        <tbody data-draw="exdiv-rows"></tbody></table>
+    </div>
+    <h2 id="h-div">종목별 배당</h2>
+    <div class="sj-controls">
+      <label>정렬 <select class="dash-select" id="div-sort" aria-label="배당 정렬">
+        <option value="yield_pct">배당수익률</option><option value="dps_fc">연간 예상 배당</option><option value="growth">전기 대비 증배율</option><option value="payout_pct">배당성향</option>
+      </select></label>
+    </div>
+    <div class="sj-tablewrap">
+      <table id="div-table"><thead><tr><th class="l">코드</th><th class="l">종목</th><th class="l">결산기</th><th>연간 예상</th><th>중간</th><th>기말 예상</th><th>전기</th><th>전전기</th><th>증배율</th><th>수익률(%)</th><th>배당성향(%)</th><th class="l">직전 배당락일</th><th>직전 배당</th><th class="l">비고</th></tr></thead>
+        <tbody data-draw="div-rows"></tbody></table>
+    </div>
+    <p class="sj-muted">금액은 주식분할 조정 후 기준이며, 분할 직전 지급분은 비고에 표시했습니다. 수익률은 야후재팬이 표시한 회사 예상 기준 값입니다. '회차 수익률'은 다가오는 회차 배당 ÷ 최근 종가입니다.</p>
+  </section>
+
+  <section id="history" data-tab hidden>
+    <div class="sj-controls">
+      <label>종목 <select class="dash-select" data-draw="hist-select" aria-label="연혁 종목"></select></label>
+    </div>
+    <h2 id="h-history"><span data-draw="hist-name">—</span> 연혁</h2>
+    <h2 id="h-trivia">토막지식</h2>
+    <div class="sj-trivia" data-draw="hist-trivia"></div>
+    <h2 id="h-tree">가계도 (어떤 회사들이 모여 지금이 됐나)</h2>
+    <p class="sj-muted">맨 위가 지금 회사이고, 들여쓴 줄이 그 전신입니다. 아래 회사들이 합병·분할·상호 변경으로 위 회사가 됐습니다.</p>
+    <div data-draw="hist-tree"></div>
+    <h2 id="h-hist-time">주요 연혁</h2>
+    <ol class="sj-timeline" data-draw="hist-list"></ol>
+    <h2 id="h-rel">62종목 안의 친척·관계</h2>
+    <div data-draw="hist-rel"></div>
+    <h2 id="h-hold">지분 관계 · 주요 주주</h2>
+    <p class="sj-muted">유가증권보고서·반기보고서의 상위 10대 주주 중, 투자신탁·연금 자금을 맡아 두는 신탁은행 명의(신탁구)와 해외 보관은행·증권사 명의는 실제 주인이 아니어서 뺐습니다. 비율은 자기주식을 뺀 발행주식 기준이고, 62종목인 회사(또는 그 자회사)는 이름을 누르면 그 회사로 넘어갑니다. 10위 밖의 작은 지분은 나오지 않습니다. 출처: IR BANK 대주주 일람(2026.11.25 조회).</p>
+    <div class="sj-two">
+      <div><h3 class="sj-h3">이 회사의 주요 주주</h3><div data-draw="hist-holders"></div></div>
+      <div><h3 class="sj-h3">이 회사가 가진 62종목 지분</h3><div data-draw="hist-owns"></div></div>
+    </div>
+    <h3 class="sj-h3" id="h-hold-all">62종목 사이 지분 전체 (큰 순)</h3>
+    <div class="sj-tablewrap" style="max-height: 360px">
+      <table id="hold-table"><thead><tr><th class="l">주주 (62종목)</th><th class="l">→ 지분을 가진 종목</th><th>보유 비율</th><th class="l">비고</th><th class="l">기준</th></tr></thead>
+        <tbody data-draw="hold-rows"></tbody></table>
+    </div>
+    <h2 id="h-groups">그룹 지도</h2>
+    <p class="sj-muted">옛 재벌·기업 그룹별로 62종목을 묶었습니다. 회사 이름을 누르면 그 회사로 바뀝니다. 굵게 표시된 것이 지금 보고 있는 회사입니다.</p>
+    <div class="sj-groups" data-draw="hist-groups"></div>
+    <p class="sj-muted">출처: 각 사 유가증권보고서 「沿革」(IR BANK 게재본)에서 설립·상장·합병·상호 변경과 최근 사건을 골라 한국어로 요약했습니다. 전체 연혁 원문: <a data-draw="hist-link" target="_blank" rel="noopener">—</a></p>
+  </section>
+
+  <section id="nikkei" data-tab hidden>
+    <div class="sj-cards">
+      <div class="sj-card" id="nk-close">
+        <div class="sj-card-label">닛케이225 종가 (<span data-draw="nk-stat" data-field="date" data-fmt="date">—</span>)</div>
+        <div class="sj-big" data-draw="nk-stat" data-field="close" data-fmt="num2">—</div>
+        <div class="sj-delta">전일 대비 <span data-draw="nk-stat" data-field="chg" data-fmt="signed">—</span> (<span data-draw="nk-stat" data-field="chg_pct" data-fmt="pct">—</span>)</div>
+      </div>
+      <div class="sj-card" id="nk-1100">
+        <div class="sj-card-label">오전 11시 지수 (<span data-draw="nk-1100" data-field="date" data-fmt="date">—</span>)</div>
+        <div class="sj-big" data-draw="nk-1100" data-field="t1100" data-fmt="num2">—</div>
+        <div class="sj-delta">전일 종가 대비 <span data-draw="nk-1100" data-field="am_chg" data-fmt="signed">—</span> · 11시 이후 <span data-draw="nk-1100" data-field="pm_move" data-fmt="signed">—</span></div>
+      </div>
+    </div>
+    <h2 id="h-nk-chart">닛케이225 일별 흐름</h2>
+    <div class="sj-legend" id="nk-legend">
+      <span><i class="sj-sw sj-sw-muted"></i>고가~저가</span>
+      <span><i class="sj-sw" data-series="0"></i>종가</span>
+      <span><i class="sj-sw" data-series="1"></i>오전 11시</span>
+    </div>
+    <div class="sj-chart" id="chart-nk" data-draw="nk-chart"></div>
+    <h2 id="h-nk-table">일별 표 (최근 순)</h2>
+    <div class="sj-tablewrap">
+      <table id="nk-table"><thead><tr><th class="l">날짜</th><th>시가</th><th>11:00</th><th>고가</th><th>저가</th><th>종가</th><th>전일 대비</th><th>등락률</th><th>11시→종가</th></tr></thead>
+        <tbody data-draw="nk-rows"></tbody></table>
+    </div>
+    <p class="sj-muted">일별 시가·고가·저가·종가: 야후재팬 닛케이225 시계열. 오전 11시 지수는 2026.11.18부터 거래일마다 예약 작업이 기록합니다(기록이 빠진 날은 비어 있음).</p>
+  </section>
+
+  <details id="defs">
+    <summary>계산 방법과 출처</summary>
+    <ul>
+      <li>주가·거래량: 야후재팬 파이낸스 일별 종가와 거래량 (9.25 ~ 최근 거래일).</li>
+      <li>닛케이식 지수: 62종목 주가 합계 ÷ 제수, 9.25 = 10,000. TOPIX식 지수: 시가총액 합계, 9.25 = 1,000.</li>
+      <li>시가총액: 9.25(또는 9.29) 시가총액에 매일의 주가 등락률을 곱해 이어 붙인 추정치 (백만엔 → 화면은 십억엔).</li>
+      <li>최근 3거래일: 마지막 거래일 종가 ÷ 3거래일 전 종가 − 1.</li>
+      <li>자금흐름: 구간 ①9.25~10.8 ②10.9~10.23 ③10.26~11.2 ④11.4~최근 거래일.</li>
+      <li>이 페이지는 Claude 대시보드와 같은 데이터(CSV)를 매일 밤 복사해 보여 주는 공개용 사본입니다. 개인 메모 탭은 빠져 있습니다.</li>
+    </ul>
+  </details>
+</div>

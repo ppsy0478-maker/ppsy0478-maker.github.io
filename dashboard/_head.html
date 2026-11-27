@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>닛케이로 이긴다 · 대시보드</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<script src="d3.min.js"></script>
+<style>
+  :root {
+    --font-anthropic-sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    --font-anthropic-serif: "Noto Serif KR", "Nanum Myeongjo", Georgia, serif;
+    --color-fg: #1d2533; --color-fg-muted: #5f6b7a; --color-bg: #ffffff; --color-panel: #f2f7fc; --color-border-line: #dde6ef;
+    --color-ok: #1a7f37; --color-bad: #cf222e;
+    --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 16px; --cds-gap-lg: 24px; --cds-gap-xl: 32px;
+    --cds-pad-sm: 8px; --cds-pad-md: 12px; --cds-pad-lg: 16px; --cds-radius: 8px;
+    --cds-font-weight-medium: 600;
+    --cds-text-secondary: #5f6b7a; --cds-chart-grid: #e8eef4; --cds-chart-axis: #b9c4cf; --cds-chart-muted: #a8b3bf; --cds-chart-reference: #8a96a3;
+    --cds-surface-popover: #ffffff; --cds-border: #dde6ef; --cds-shadow-popover: 0 4px 14px rgba(0,0,0,.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --color-fg: #e6edf3; --color-fg-muted: #9aa7b4; --color-bg: #0f1419; --color-panel: #18212b; --color-border-line: #2a3642;
+      --color-ok: #3fb950; --color-bad: #f85149; --cds-text-secondary: #9aa7b4; --cds-chart-grid: #222c36; --cds-chart-axis: #3a4652;
+      --cds-chart-muted: #5b6875; --cds-surface-popover: #18212b; --cds-border: #2a3642; }
+  }
+  html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); }
+  body { padding: 20px 24px 48px; max-width: 1400px; margin: 0 auto; }
+  .dash-select { font: inherit; font-size: 14px; padding: 5px 8px; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); max-width: 100%; }
+  .sj a { color: inherit; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 14px; color: var(--color-fg-muted); }
+  .topbar a { color: var(--color-fg-muted); }
+  @media (max-width: 640px) { body { padding: 12px 12px 40px; } }
+</style>
+<script>
+/* 대시보드 런타임 대체: data/*.csv 를 읽어 같은 화면 코드를 그대로 돌립니다. */
+(function () {
+  const FILES = ['prices','index','nikkei_daily','history','flows','sectors','news','market_reports','sony_reports','board','board_notes',
+    'treasury','treasury_notes','treasury_summary','outlook','performance','targets','dividends','segments','seg_detail',
+    'company_history','trivia','lineage','relations','groups','holdings'];
+  const raw = {}, calcs = {}, draws = {}, mounted = new WeakMap(), memo = {};
+  let loaded = false, failed = false;
+  const colors = ['#2f6fd6', '#e0862f', '#7b5cc7', '#22a094', '#c94a86', '#7d8793'];
+  function data(name) {
+    if (failed) return { status: 'error', data: null };
+    if (!loaded) return { status: 'loading', data: null };
+    if (name in memo) return memo[name];
+    let out;
+    if (name in raw) out = { status: 'ok', data: raw[name] };
+    else if (calcs[name]) {
+      const ins = calcs[name].inputs.map((n) => data(n));
+      if (ins.some((x) => x.status !== 'ok')) out = { status: 'error', data: null };
+      else { try { out = { status: 'ok', data: calcs[name].fn(...ins.map((x) => x.data)) }; } catch (e) { console.error(name, e); out = { status: 'error', data: null }; } }
+    } else out = { status: 'error', data: null };
+    memo[name] = out; return out;
+  }
+  function run(name) {
+    const d = draws[name]; if (!d) return;
+    document.querySelectorAll('[data-draw="' + name + '"]').forEach((el) => {
+      try {
+        if (typeof d === 'function') d(el);
+        else { let m = mounted.get(el); if (!m) { m = d.mount(el); mounted.set(el, m); } d.update(el, m); }
+      } catch (e) { console.error('draw', name, e); }
+    });
+  }
+  window.dash = {
+    colors,
+    calc(name, spec) { calcs[name] = spec; },
+    data,
+    draw(name, fn) { if (fn) draws[name] = fn; run(name); },
+    setLink(id) { try { history.replaceState(null, '', '#' + id); } catch (e) {} },
+    _all() { Object.keys(draws).forEach(run); }
+  };
+  window.claude = { use: async () => null };
+  window.__dashLoad = async function () {
+    try {
+      const v = '?v=' + (document.documentElement.dataset.build || Date.now());
+      await Promise.all(FILES.map(async (f) => { const t = await fetch('data/' + f + '.csv' + v).then((r) => { if (!r.ok) throw new Error(f); return r.text(); }); raw[f] = d3.csvParse(t); }));
+      raw.nikkei_live = await fetch('data/nikkei_live.json' + v).then((r) => r.ok ? r.json() : []).catch(() => []);
+      raw.notes = [];
+      loaded = true;
+    } catch (e) { console.error(e); failed = true; }
+    window.dash._all();
+    let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => window.dash._all(), 150); });
+  };
+})();
+</script>
+</head>
+<body>
+<div class="topbar"><a href="../">← 표지로</a><span>매일 밤 업데이트 · 데이터 출처는 각 탭 안내 참고</span></div>
