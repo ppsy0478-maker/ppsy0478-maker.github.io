@@ -41,7 +41,7 @@
 
   // ---------- company history ----------
   dash.draw('hist-select', (sel) => { stockOptions(sel, S.hist || '7203', false); sel.onchange = () => { S.hist = sel.value; redrawHist(); }; });
-  const HISTN = ['hist-select', 'hist-list', 'hist-name', 'hist-link', 'hist-trivia', 'hist-tree', 'hist-rel', 'hist-groups', 'hist-holders', 'hist-owns', 'hold-rows'];
+  const HISTN = ['hist-select', 'hist-philo', 'hist-list', 'hist-name', 'hist-link', 'hist-trivia', 'hist-tree', 'hist-rel', 'hist-groups', 'hist-holders', 'hist-owns', 'hold-rows'];
   const redrawHist = () => HISTN.forEach((n) => dash.draw(n));
   const HC = () => S.hist || '7203';
   const setHist = (code) => { S.hist = code; redrawHist(); document.querySelectorAll('#h-history').forEach((h2) => h2.scrollIntoView({ behavior: 'smooth', block: 'start' })); };
@@ -131,6 +131,7 @@
   });
   const histRows = () => { const d = dash.data('company_history'); return d.status === 'ok' && d.data ? d.data.filter((r) => r.code === HC()) : null; };
   dash.draw('hist-name', (el) => { const d = dash.data('stock_stats'); const r = d.status === 'ok' && d.data ? d.data.find((x) => x.code === HC()) : null; el.textContent = r ? r.name + ' (' + r.code + ')' : '—'; });
+  dash.draw('hist-philo', (el) => { if (window.__sjPhilo) window.__sjPhilo(HC(), el); });
   dash.draw('hist-list', (ol) => {
     ol.replaceChildren(); const rows = histRows(); if (!rows) return;
     rows.slice().sort((a, b) => a.ym.localeCompare(b.ym)).forEach((r) => { const li = document.createElement('li'); const b = document.createElement('span'); b.className = 'sj-tl-date'; b.textContent = r.ym; li.append(b, document.createTextNode(r.event)); ol.append(li); });
@@ -233,7 +234,7 @@
   const pctF = (v) => v == null ? '—' : fmtPct(v, true);
   const sortDesc = (k) => (a, b) => (b[k] == null ? -1e12 : b[k]) - (a[k] == null ? -1e12 : a[k]);
   const DT = () => S.detail || '7203';
-  const redrawDetail = () => ['dt-select', 'dt-name', 'dt-cards', 'dt-price', 'dt-sales', 'dt-profit', 'dt-perf-rows', 'dt-target', 'dt-target-note', 'dt-pie', 'dt-div', 'dt-hist', 'dt-news', 'dt-board', 'dt-outlook', 'dt-trivia'].forEach((n) => dash.draw(n));
+  const redrawDetail = () => ['dt-select', 'dt-name', 'dt-philo', 'dt-cards', 'dt-price', 'dt-sales', 'dt-profit', 'dt-perf-rows', 'dt-target', 'dt-target-note', 'dt-pie', 'dt-div', 'dt-hist', 'dt-news', 'dt-board', 'dt-outlook', 'dt-trivia'].forEach((n) => dash.draw(n));
   const goDetail = (code) => { S.detail = code; open('detail'); redrawDetail(); document.querySelectorAll('#h-detail').forEach((h2) => h2.scrollIntoView({ block: 'start' })); };
   document.querySelectorAll('#perf-sort').forEach((s) => s.addEventListener('change', () => { S.perfSort = s.value; dash.draw('perf-rows'); }));
   dash.draw('perf-rows', (tb) => {

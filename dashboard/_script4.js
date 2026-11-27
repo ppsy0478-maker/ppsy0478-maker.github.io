@@ -55,6 +55,17 @@
     inp.addEventListener('input', () => showHits(inp));
     inp.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { const h = dtHits(inp.value.trim()); if (h.length) pickDetail(h[0].code); } if (ev.key === 'Escape') { inp.value = ''; showHits(inp); } });
   });
+  const philo = (code, el) => {
+    el.replaceChildren(); const d = dash.data('philosophy'); if (d.status !== 'ok' || !d.data) return;
+    const r = d.data.find((x) => x.code === code); if (!r) return;
+    const k = document.createElement('p'); k.className = 'ph-k'; k.textContent = '회사 이념 · ' + r.kind;
+    const ko = document.createElement('p'); ko.className = 'ph-ko'; ko.textContent = r.ko;
+    const ja = document.createElement('p'); ja.className = 'ph-ja'; ja.append(document.createTextNode('원문: ' + r.ja + ' · '));
+    if (/^https:\/\//.test(r.source_url)) { const a = document.createElement('a'); a.href = r.source_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '공식 사이트'; ja.append(a); }
+    el.append(k, ko, ja);
+  };
+  window.__sjPhilo = philo;
+  dash.draw('dt-philo', (el) => { const r = oneOf('stock_stats'); philo(r ? r.code : '', el); });
   dash.draw('dt-name', (el) => { const r = oneOf('stock_stats'); el.textContent = r ? r.name + ' (' + r.code + ') · ' + r.sector : '—'; });
   dash.draw('dt-cards', (box) => {
     box.replaceChildren();
