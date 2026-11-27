@@ -1,0 +1,22 @@
+name: TTS 목소리 샘플
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  samples:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+          pip install -q supertonic
+          python scripts/tts_samples.py
+      - name: 샘플 브랜치에 올리기
+        run: |
+          mkdir /tmp/s && cp samples/*.mp3 /tmp/s/
+          git config user.name "brief-bot"; git config user.email "brief-bot@users.noreply.github.com"
+          git checkout --orphan tts-samples && git rm -rfq . && cp /tmp/s/*.mp3 . && git add *.mp3 && git commit -qm "samples" && git push -fq origin tts-samples
