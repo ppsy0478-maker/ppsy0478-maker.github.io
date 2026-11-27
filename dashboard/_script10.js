@@ -97,7 +97,7 @@
       const app = new PIXI.Application({ view: canvas, autoStart: true, backgroundAlpha: 0, width: stage.clientWidth, height: stage.clientHeight, resolution: Math.min(2, window.devicePixelRatio || 1), autoDensity: true });
       model = await PIXI.live2d.Live2DModel.from(MODEL, { autoInteract: false });
       app.stage.addChild(model);
-      const fit = () => { const s = Math.min(stage.clientWidth / model.internalModel.width, stage.clientHeight / model.internalModel.height) * 1.9; model.scale.set(s); model.anchor.set(0.5, 0.18); model.x = stage.clientWidth / 2; model.y = 0; };
+      const fit = () => { const s = stage.clientHeight / model.internalModel.height * 1.75; model.scale.set(s); model.anchor.set(0.5, 0); model.x = stage.clientWidth / 2; model.y = 6; }; window.__vtbModel = model;
       fit();
       let t = 0;
       model.internalModel.on('beforeModelUpdate', () => { t += 0.35; const v = talking ? Math.max(0, Math.sin(t) * 0.6 + Math.sin(t * 2.3) * 0.35 + 0.2) : 0; model.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', Math.min(1, v)); });
