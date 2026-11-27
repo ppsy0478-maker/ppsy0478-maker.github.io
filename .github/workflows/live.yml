@@ -1,9 +1,9 @@
-# 장중 시세: 도쿄 장중(평일 9:00~15:30 JST)에 30분마다 야후재팬 62종목 현재가를 받아 dashboard/data/live.json 갱신
+# 장중 시세: 도쿄 장중(평일 9:00~15:30 JST)에 10분마다 야후재팬 62종목 현재가를 받아 dashboard/data/live.json 갱신
 name: live-quotes
 on:
   schedule:
-    - cron: '*/30 0-5 * * 1-5'   # 09:00~14:30 JST
-    - cron: '0,35 6 * * 1-5'     # 15:00, 15:35 JST (종가 반영)
+    - cron: '3-59/10 0-5 * * 1-5'   # 09:03~14:53 JST, 10분마다 (정각은 깃허브가 붐벼서 3분 늦춤)
+    - cron: '3,13,23,33,43 6 * * 1-5' # 15:03~15:43 JST (15:30 종가 반영)
   workflow_dispatch: {}
 permissions:
   contents: write

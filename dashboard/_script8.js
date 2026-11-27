@@ -22,7 +22,7 @@
   const drawTrend = () => {
     const box = document.getElementById('lv-trend'); if (!box || typeof d3 === 'undefined') return; box.replaceChildren();
     const d = lastDay(); const dayEl = document.getElementById('lv-day');
-    if (!d || !d.points.length) return empty(box, '아직 장중 기록이 없습니다. 다음 장중(평일 9:00~)부터 30분마다 점이 쌓입니다.');
+    if (!d || !d.points.length) return empty(box, '아직 장중 기록이 없습니다. 다음 장중(평일 9:00~)부터 10분마다 점이 쌓입니다.');
     if (dayEl) dayEl.textContent = '· ' + d.date.slice(5).replace('-', '.') + ' (점 ' + d.points.length + '개)';
     const S = [['nk_pct', '닛케이225', '#c0392b'], ['ns_pct', '62종목(닛케이식)', '#2563eb'], ['tp_pct', '62종목(시총 가중)', '#16a34a']];
     const pts = d.points.filter((p) => tmin(p.t) >= 540 && tmin(p.t) <= 960);
