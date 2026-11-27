@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611271741">
+<html lang="ko" data-build="202611271922">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -2985,7 +2985,7 @@
     <div class="vtb-bar"><button class="main" type="button" data-a="play">▶ 브리핑</button><button type="button" data-a="pause">⏸</button><button type="button" data-a="stop">■</button>
       <select data-a="rate" aria-label="말 빠르기"><option value="0.9">느리게</option><option value="1.05" selected>보통</option><option value="1.25">빠르게</option></select>
       <select data-a="voice" aria-label="목소리"></select></div>
-    <div class="vtb-note">기본 목소리 SunHi(엣지 브라우저에서 사용 가능, 크롬은 Google 음성) · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
+    <div class="vtb-note">브리핑은 오픈소스 AI 음성(MeloTTS), 검색 답변은 브라우저 음성 · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
   </div>`;
   const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-stage'), sub = root.querySelector('.vtb-sub');
   const vsel = root.querySelector('[data-a="voice"]'), rsel = root.querySelector('[data-a="rate"]');
@@ -3000,11 +3000,11 @@
     voices = synth.getVoices().filter((v) => /^ko/i.test(v.lang));
     const rank = (v) => (/SunHi/i.test(v.name) && /Online|Natural/i.test(v.name) ? 0 : /Natural|Online/i.test(v.name) ? 1 : /Google/i.test(v.name) ? 2 : 3);
     voices.sort((a, b) => rank(a) - rank(b));
-    vsel.replaceChildren(...(voices.length ? voices.map((v, i) => new Option(v.name.replace(/Microsoft |\(.*?\)| - Korean.*$/g, '').trim() || v.name, i)) : [new Option('한국어 음성 없음', '')]));
-    try { const s = localStorage.getItem('vtb-voice2'); if (s && voices.some((v) => v.name === s)) vsel.value = String(voices.findIndex((v) => v.name === s)); } catch (e) {}
+    vsel.replaceChildren(new Option('AI 음성 (브리핑)', 'ai'), ...voices.map((v, i) => new Option('브라우저: ' + (v.name.replace(/Microsoft |\(.*?\)| - Korean.*$/g, '').trim() || v.name), i)));
+    try { const s = localStorage.getItem('vtb-voice2'); if (s && voices.some((v) => v.name === s)) vsel.value = String(voices.findIndex((v) => v.name === s)); else vsel.value = 'ai'; } catch (e) {}
   };
   if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
-  vsel.onchange = () => { try { localStorage.setItem('vtb-voice2', voices[+vsel.value].name); } catch (e) {} };
+  vsel.onchange = () => { try { localStorage.setItem('vtb-voice2', vsel.value === 'ai' ? 'ai' : voices[+vsel.value].name); } catch (e) {} };
 
   /* ---------- 캐릭터 ---------- */
   let model = null, talking = false, loading = null;
@@ -3020,7 +3020,7 @@
       const fit = () => { const s = stage.clientHeight / model.internalModel.height * 1.75; model.scale.set(s); model.anchor.set(0.5, 0); model.x = stage.clientWidth / 2; model.y = 6; }; window.__vtbModel = model;
       fit();
       let t = 0;
-      model.internalModel.on('beforeModelUpdate', () => { t += 0.35; const v = talking ? Math.max(0, Math.sin(t) * 0.6 + Math.sin(t * 2.3) * 0.35 + 0.2) : 0; model.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', Math.min(1, v)); });
+      model.internalModel.on('beforeModelUpdate', () => { t += 0.35; const v = !talking ? 0 : (analyser && audioEl && !audioEl.paused) ? audioLevel() : Math.max(0, Math.sin(t) * 0.6 + Math.sin(t * 2.3) * 0.35 + 0.2); model.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', Math.min(1, v)); });
       stage.addEventListener('click', () => { try { model.motion('TapBody'); } catch (e) {} });
     })().catch(() => { stage.querySelector('.vtb-fallback').style.display = 'flex'; });
     return loading;
@@ -3034,13 +3034,13 @@
     const text = queue[idx]; sub.textContent = text;
     if (!synth) { sub.textContent = '이 브라우저는 음성 읽기를 지원하지 않아요. 자막만 보여 드릴게요.'; return; }
     const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; u.rate = +rsel.value; u.pitch = 1.08;
-    if (voices[+vsel.value]) u.voice = voices[+vsel.value];
+    const bv = vsel.value === 'ai' ? voices[0] : voices[+vsel.value]; if (bv) u.voice = bv;
     u.onstart = () => setTalk(true);
     u.onend = () => { setTalk(false); idx++; setTimeout(speakNext, 180); };
     u.onerror = () => { setTalk(false); };
     synth.speak(u);
   }
-  function playLines(lines) { if (synth) synth.cancel(); queue = lines; idx = 0; speakNext(); }
+  function playLines(lines) { stopAudio(); if (synth) synth.cancel(); queue = lines; idx = 0; speakNext(); }
   const qf = root.querySelector('.vtb-q'), qi = qf.querySelector('input'), mic = qf.querySelector('[data-a="mic"]');
   qf.onsubmit = (e) => { e.preventDefault(); if (qi.value.trim()) playLines(answer(qi.value)); };
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3057,15 +3057,37 @@
       rec.start();
     };
   }
+
+  /* ---------- AI 음성 파일 재생 ---------- */
+  let audioEl = null, analyser = null, actx = null, abuf = null, aMeta = null;
+  const audioLevel = () => { if (!abuf) abuf = new Uint8Array(analyser.fftSize); analyser.getByteTimeDomainData(abuf); let s2 = 0; for (const x of abuf) { const d = (x - 128) / 128; s2 += d * d; } return Math.min(1, Math.sqrt(s2 / abuf.length) * 7); };
+  const latestRep = () => rowsOf('market_reports').map((r) => String(r.date).slice(0, 10)).sort().pop();
+  async function briefMeta() { try { const r = await fetch('data/brief.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return null; const m = await r.json(); return m && m.date === latestRep() && m.audio ? m : null; } catch (e) { return null; } }
+  function stopAudio() { if (audioEl) { audioEl.pause(); audioEl.currentTime = 0; } }
+  async function playBrief() {
+    const m = await briefMeta();
+    if (!m) { sub.textContent = '오늘 AI 음성 파일이 아직 없어서 브라우저 음성으로 읽을게요.'; setTimeout(() => playLines(script()), 600); return; }
+    if (synth) synth.cancel();
+    if (!audioEl || aMeta !== m.date) {
+      stopAudio(); audioEl = new Audio('data/' + m.audio + '?d=' + m.date); aMeta = m.date;
+      try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const src = actx.createMediaElementSource(audioEl); analyser = actx.createAnalyser(); analyser.fftSize = 1024; src.connect(analyser); analyser.connect(actx.destination); } catch (e) { analyser = null; }
+      audioEl.ontimeupdate = () => { const t = audioEl.currentTime; let i = 0; m.starts.forEach((st, k) => { if (st <= t + 0.05) i = k; }); if (sub.textContent !== m.lines[i]) sub.textContent = m.lines[i]; };
+      audioEl.onplay = () => setTalk(true); audioEl.onpause = () => setTalk(false); audioEl.onended = () => setTalk(false);
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+    audioEl.playbackRate = +rsel.value / 1.05;
+    audioEl.currentTime = 0; audioEl.play();
+  }
   root.querySelector('[data-a="play"]').onclick = () => {
+    if (audioEl && audioEl.paused && audioEl.currentTime > 0 && !audioEl.ended) { audioEl.play(); return; }
     if (synth && synth.paused) { synth.resume(); setTalk(true); return; }
-    playLines(script());
+    if (vsel.value === 'ai') playBrief(); else playLines(script());
     try { model && model.motion('Idle'); } catch (e) {}
   };
-  root.querySelector('[data-a="pause"]').onclick = () => { if (synth && synth.speaking) { synth.pause(); setTalk(false); } };
-  root.querySelector('[data-a="stop"]').onclick = () => { if (synth) synth.cancel(); queue = []; setTalk(false); sub.textContent = '▶ 를 누르면 오늘 시장을 브리핑해 드려요.'; };
+  root.querySelector('[data-a="pause"]').onclick = () => { if (audioEl && !audioEl.paused) { audioEl.pause(); return; } if (synth && synth.speaking) { synth.pause(); setTalk(false); } };
+  root.querySelector('[data-a="stop"]').onclick = () => { stopAudio(); if (synth) synth.cancel(); queue = []; setTalk(false); sub.textContent = '▶ 를 누르면 오늘 시장을 브리핑해 드려요.'; };
   fab.onclick = () => { fab.hidden = true; box.hidden = false; initModel(); };
-  root.querySelector('.vtb-x').onclick = (e) => { e.stopPropagation(); if (synth) synth.cancel(); setTalk(false); box.hidden = true; fab.hidden = false; };
+  root.querySelector('.vtb-x').onclick = (e) => { e.stopPropagation(); stopAudio(); if (synth) synth.cancel(); setTalk(false); box.hidden = true; fab.hidden = false; };
 })();
 
 </script>

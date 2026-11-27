@@ -1,0 +1,44 @@
+name: AI 음성 브리핑 만들기
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/data/market_reports.csv'
+      - 'dashboard/data/market_news.csv'
+      - 'dashboard/data/investor_flows.csv'
+      - 'dashboard/data/calendar.csv'
+      - 'scripts/brief_script.py'
+      - 'scripts/tts_brief.py'
+  workflow_dispatch:
+concurrency:
+  group: brief
+  cancel-in-progress: true
+permissions:
+  contents: write
+jobs:
+  tts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: .github/workflows/brief.yml
+      - name: 설치
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q git+https://github.com/myshell-ai/MeloTTS.git
+          python -m unidic download
+      - name: 음성 만들기
+        run: python scripts/tts_brief.py
+      - name: 올리기
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "brief-bot@users.noreply.github.com"
+          git add dashboard/data/brief.mp3 dashboard/data/brief.json
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git commit -m "AI 음성 브리핑 갱신"
+          for i in 1 2 3; do git pull --rebase -q origin main && git push -q && break; sleep 5; done
