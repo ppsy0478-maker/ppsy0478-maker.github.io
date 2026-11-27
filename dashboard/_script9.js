@@ -164,6 +164,49 @@
     const top = R.slice().sort((a, b) => a.from_hi - b.from_hi)[0];
     stat(box, '고가에서 가장 먼 종목', top.name, '고가 대비 ' + top.from_hi.toFixed(1) + '%', -1);
   });
+
+  /* ---------------- 시장 특징 뉴스 ---------------- */
+  const MCAT = ['전체', '시황', '특징주', '수급', '전망', '해외'];
+  const MCOL = { '시황': '#2f6fd6', '특징주': '#c0392b', '수급': '#22a094', '전망': '#7b5cc7', '해외': '#e0862f' };
+  let mnCat = '전체', mnDate = '';
+  const mnRows = () => (rowsOf('market_news') || []).map((r) => ({ ...r, date: String(r.date).slice(0, 10), datetime: String(r.datetime) })).sort((a, b) => b.datetime.localeCompare(a.datetime));
+  const mnItem = (r) => {
+    const li = el('li');
+    const d = el('span', 'd', md(r.date) + ' ' + r.datetime.slice(11, 16));
+    const b = el('span', 'sj-badge', r.cat); b.style.color = MCOL[r.cat] || 'inherit';
+    const body = el('span'); const a = el('a', null, r.title);
+    if (/^https:\/\/kabutan\.jp\//.test(r.url)) { a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; }
+    body.append(a, el('span', 't', r.source || '株探'));
+    if (r.summary) body.append(el('div', 'nd', r.summary));
+    li.append(d, b, body); return li;
+  };
+  dash.draw('mn-filter', (bar) => {
+    bar.replaceChildren(); const R = mnRows(); const dates = [...new Set(R.map((r) => r.date))];
+    const sel = document.createElement('select'); sel.className = 'dash-select'; sel.setAttribute('aria-label', '시장 뉴스 날짜');
+    sel.append(new Option('최근 전체', ''), ...dates.map((d) => new Option(md(d) + '(' + wd(d) + ')', d))); sel.value = mnDate;
+    sel.onchange = () => { mnDate = sel.value; dash.draw('mn-list'); };
+    bar.append(sel);
+    MCAT.forEach((k) => { const b = el('button', 'sj-hit' + (k === mnCat ? ' on' : ''), k); b.type = 'button'; b.onclick = () => { mnCat = k; dash.draw('mn-filter'); dash.draw('mn-list'); }; bar.append(b); });
+  });
+  dash.draw('mn-list', (ul) => {
+    ul.replaceChildren(); const R = mnRows().filter((r) => (!mnDate || r.date === mnDate) && (mnCat === '전체' || r.cat === mnCat));
+    if (!R.length) { ul.append(el('li', 'sj-muted', '해당하는 뉴스가 없습니다.')); return; }
+    R.slice(0, 60).forEach((r) => ul.append(mnItem(r)));
+  });
+  dash.draw('ov-mnews', (ul) => {
+    ul.replaceChildren(); const R = mnRows(); if (!R.length) return;
+    const d = R[0].date; R.filter((r) => r.date === d).slice(0, 8).forEach((r) => ul.append(mnItem(r)));
+  });
+  const rpDate = () => { const s = document.querySelector('[data-draw="rp-select"]'); return s && s.value ? s.value : null; };
+  dash.draw('rp-mnews', (ul) => {
+    ul.replaceChildren(); const R = mnRows(); if (!R.length) return;
+    const d = rpDate() || R[0].date; const rows = R.filter((r) => r.date === d).reverse();
+    if (!rows.length) { ul.append(el('li', 'sj-muted', '이 날짜는 정리한 시장 뉴스가 없습니다(11.26부터 기록).')); return; }
+    rows.forEach((r) => ul.append(mnItem(r)));
+  });
+  const rpHook = () => { const s = document.querySelector('[data-draw="rp-select"]'); if (s && !s.__mn) { s.__mn = 1; s.addEventListener('change', () => setTimeout(() => dash.draw('rp-mnews'), 0)); } };
+  setTimeout(rpHook, 1500);
+  document.addEventListener('click', (e) => { const t = e.target.closest && e.target.closest('[data-go="reports"],[data-go="news"],#rp-table tr'); if (t) setTimeout(() => { rpHook(); dash.draw('rp-mnews'); dash.draw('mn-list'); }, 60); }, true);
   const detailCode = () => { const s = document.querySelector('[data-draw="dt-select"]'); return s && s.value ? String(s.value) : '7203'; };
   dash.draw('dt-w52', (box) => {
     box.replaceChildren(); const R = w52(); if (!R) return; const r = R.find((x) => x.code === detailCode()); if (!r) return;
