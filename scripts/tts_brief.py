@@ -6,14 +6,14 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'scripts'))
-from brief_script import build
+from brief_script import build_both
 
 OUT = ROOT / 'dashboard' / 'data'
-date, lines = build()
+date, disp, lines = build_both()
 meta_path = OUT / 'brief.json'
 if meta_path.exists():
     old = json.load(open(meta_path, encoding='utf-8'))
-    if old.get('date') == date and old.get('lines') == lines and (OUT / 'brief.mp3').exists():
+    if old.get('date') == date and old.get('speech') == lines and (OUT / 'brief.mp3').exists():
         print('same script, skip'); sys.exit(0)
 
 from melo.api import TTS
@@ -36,5 +36,5 @@ with wave.open(str(wav), 'wb') as w:
     w.writeframes((pcm * 32767).astype('<i2').tobytes())
 subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', str(wav), '-ac', '1', '-ar', '24000', '-b:a', '64k', str(OUT / 'brief.mp3')], check=True)
 wav.unlink()
-json.dump({'date': date, 'lines': lines, 'starts': starts, 'duration': round(t, 2), 'audio': 'brief.mp3', 'voice': 'MeloTTS 한국어 (오픈소스)'}, open(meta_path, 'w', encoding='utf-8'), ensure_ascii=False)
+json.dump({'date': date, 'lines': disp, 'speech': lines, 'starts': starts, 'duration': round(t, 2), 'audio': 'brief.mp3', 'voice': 'MeloTTS 한국어 (오픈소스)'}, open(meta_path, 'w', encoding='utf-8'), ensure_ascii=False)
 print('ok', date, len(lines), 'lines', round(t, 1), 's')

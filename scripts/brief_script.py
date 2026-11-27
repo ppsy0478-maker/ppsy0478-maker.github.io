@@ -34,7 +34,10 @@ def read_number(s):
     return num_ko(int(s))
 
 NAT = {1: '한', 2: '두', 3: '세', 4: '네', 5: '다섯', 6: '여섯', 7: '일곱', 8: '여덟', 9: '아홉', 10: '열', 11: '열한', 12: '열두'}
+SPOKEN = True
 def speak(text):
+    if not SPOKEN:
+        t = re.sub(r'\s*¶\s*', ' ', str(text or '')); t = re.sub(r'\s*\([^()]*\)', '', t); return re.sub(r'\s+', ' ', t).strip()
     t = str(text or '')
     t = re.sub(r'\s*¶\s*', ' ', t)
     t = re.sub(r'\s*\([^()]*\)', '', t)            # 괄호 속 보충 설명은 읽지 않음
@@ -61,7 +64,14 @@ def speak(text):
 MONTH = {6: '유월', 10: '시월'}
 def month_ko(m): return MONTH.get(int(m), num_ko(m) + '월')
 def md(d):
+    if not SPOKEN: return f'{int(d[5:7])}월 {int(d[8:10])}일'
     return f'{month_ko(d[5:7])} {num_ko(d[8:10])}일'
+
+def build_both():
+    global SPOKEN
+    SPOKEN = False; d, disp = build()
+    SPOKEN = True; _, sp = build()
+    return d, disp, sp
 
 def build():
     reps = sorted(rows('market_reports'), key=lambda r: r['date'])
@@ -84,7 +94,7 @@ def build():
     iv = sorted(rows('investor_flows'), key=lambda r: r['week_end'])
     if iv:
         v = round(float(iv[-1]['for_net']))
-        out.append(f'수급을 보면, 가장 최근 집계 주에 외국인은 {num_ko(abs(v))}억 엔을 순{"매수" if v >= 0 else "매도"}했어요.')
+        out.append(f'수급을 보면, 가장 최근 집계 주에 외국인은 {num_ko(abs(v)) if SPOKEN else format(abs(v), ",")}억 엔을 순{"매수" if v >= 0 else "매도"}했어요.')
     today = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=9)).date().isoformat()
     cal = [r for r in rows('calendar') if r['date'][:10] >= max(today, d) and re.search('금리|미국 지표|실적', r['kind'])][:3]
     if cal:
@@ -93,7 +103,7 @@ def build():
     return d, [s for s in out if s]
 
 if __name__ == '__main__':
-    d, lines = build()
+    d, disp, lines = build_both()
     if '--print' in sys.argv:
-        print(d); print('\n'.join(lines)); sys.exit()
+        print(d); print('\n'.join(a + '\n   → ' + b for a, b in zip(disp, lines))); sys.exit()
     json.dump({'date': d, 'lines': lines}, open(sys.argv[1] if len(sys.argv) > 1 else '/dev/stdout', 'w', encoding='utf-8'), ensure_ascii=False)
