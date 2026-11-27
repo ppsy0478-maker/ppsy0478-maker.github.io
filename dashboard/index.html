@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611271313">
+<html lang="ko" data-build="202611271330">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -103,6 +103,11 @@
   .sj h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: var(--cds-gap-lg) 0 var(--cds-gap-xs); }
   .sj .sj-sub { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0 0 var(--cds-gap-sm); }
   .sj .sj-lede { font-size: var(--cds-font-size-body); line-height: 1.6; margin: 0 0 var(--cds-gap-md); max-width: 72ch; }
+  .sj .sj-top { display: flex; gap: 32px; align-items: flex-start; margin: 0 0 var(--cds-gap-md); }
+  .sj .sj-top > .sj-lede { flex: 1 1 0; min-width: 0; margin: 0; }
+  .sj .sj-video { flex: 1 1 0; min-width: 0; position: sticky; top: 16px; }
+  .sj .sj-video iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 12px; display: block; background: #000; }
+  @media (max-width: 900px) { .sj .sj-top { flex-direction: column; } .sj .sj-video { width: 100%; position: static; } }
   .sj .sj-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); margin-bottom: var(--cds-gap-md); }
   .sj .sj-tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: var(--cds-pad-sm) var(--cds-pad-md); color: var(--color-fg-muted); font: inherit; cursor: pointer; }
   .sj .sj-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
@@ -200,9 +205,14 @@
 <div class="sj">
   <h1 id="title" style="display:flex;align-items:center;gap:12px">닛케이로 이긴다<img src="../img/title-cat.jpg" alt="" style="height:1.3em;width:auto;border-radius:8px"></h1>
   <p class="sj-sub">일본 대형주 62종목 · 9.25 ~ <span data-draw="last-date">—</span> 종가 기준 · 야후재팬 파이낸스</p>
+  <div class="sj-top">
   <div class="sj-lede" id="lede">
     <div data-draw="pub-lede">불러오는 중…</div>
     <p style="margin:0" class="sj-muted">9.25 이후 누적: 62종목 지수(닛케이식) <b data-draw="kpi" data-fmt="pct" data-field="ns_total">—</b>, 닛케이225 <b data-draw="kpi" data-fmt="pct" data-field="n225_total">—</b>.</p>
+  </div>
+    <div class="sj-video">
+      <iframe src="https://www.youtube-nocookie.com/embed/Brpdd4RwmXc?rel=0" title="노래 들으며 보기" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>
   </div>
 
   <nav class="sj-tabs" role="tablist" aria-label="화면">
