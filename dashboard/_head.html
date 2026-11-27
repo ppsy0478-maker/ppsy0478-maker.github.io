@@ -29,6 +29,8 @@
   .sj a { color: inherit; }
   .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 14px; color: var(--color-fg-muted); }
   .topbar a { color: var(--color-fg-muted); }
+  .tv-tape { margin: 0 0 14px; min-height: 46px; }
+  .tv-tape .tv-note { margin: 2px 0 0; font-size: 11px; color: var(--color-fg-muted); text-align: right; }
   @media (max-width: 640px) { body { padding: 12px 12px 40px; } }
 </style>
 <script>
@@ -87,3 +89,20 @@
 </head>
 <body>
 <div class="topbar"><a href="../">← 표지로</a><span>매일 밤 업데이트 · 데이터 출처는 각 탭 안내 참고</span></div>
+<div class="tv-tape">
+<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div>
+<script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+{"symbols":[
+ {"proName":"OANDA:JP225USD","title":"닛케이225 (CFD·선물 기준)"},
+ {"proName":"FX:USDJPY","title":"달러/엔"},
+ {"proName":"FX_IDC:JPYKRW","title":"엔/원"},
+ {"proName":"FX_IDC:USDKRW","title":"달러/원"},
+ {"proName":"OANDA:NAS100USD","title":"나스닥100"},
+ {"proName":"OANDA:SPX500USD","title":"S&P500"},
+ {"proName":"OANDA:XAUUSD","title":"금"},
+ {"proName":"TVC:USOIL","title":"WTI 원유"}
+],"showSymbolLogo":true,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"kr"}
+</script></div>
+<p class="tv-note">시세: TradingView (실시간~지연, 닛케이는 24시간 거래되는 CFD 가격이라 현물 지수와 조금 다를 수 있음)</p>
+</div>
+<script>/* 밝은 화면이면 밝은 테마로 */ (function(){var s=document.querySelector('.tv-tape script[src*="ticker-tape"]');if(s&&!matchMedia('(prefers-color-scheme: dark)').matches){s.text=s.text.replace('"colorTheme":"dark"','"colorTheme":"light"');}})();</script>
