@@ -664,22 +664,14 @@
   };
   root.querySelector('[data-a="pause"]').onclick = () => { if (audioEl && !audioEl.paused) { audioEl.pause(); return; } if (synth && synth.speaking) { synth.pause(); setTalk(false); } };
   root.querySelector('[data-a="stop"]').onclick = () => { stopAudio(); if (synth) synth.cancel(); queue = []; setTalk(false); sub.textContent = '▶ 를 누르면 오늘 시장을 브리핑해 드려요.'; root.classList.remove('brief'); };
-  /* ---------- 혼잣말 (몇 분마다, 무료·미리 써 둔 대사) ---------- */
+  /* ---------- 혼잣말 (몇 분마다, 무료·미리 써 둔 대사: data/reiko_lines.json 100개 + 상황 대사) ---------- */
+  let soloBank = []; const soloUsed = new Set();
+  fetch('data/reiko_lines.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => { soloBank = d && Array.isArray(d.lines) ? d.lines.filter((x) => x && x.text) : []; }).catch(() => {});
   function soloLine() {
     const now = new Date(Date.now() + 9 * 3600e3), hr = now.getUTCHours(), dow = now.getUTCDay(), lv = bondLv();
     const S = snap(), up = S.list.slice().sort((a, b) => b.d1 - a.d1)[0], dn = S.list.slice().sort((a, b) => a.d1 - b.d1)[0];
     const W = watchStocks(), w = W.length ? W[Math.floor(Math.random() * W.length)] : null;
-    const pool = [
-      ['casual', '…선생님은 오늘도 차트만 보시네. 차라도 한 잔 내올까… 아, 아니, 혼잣말이에요.'],
-      ['casual', '서류 정리 끝. …칭찬 같은 건 안 해 주셔도 되는데. 정말로.'],
-      ['embarrassed', '리본 오늘 좀 비뚤어졌나… 서, 선생님 보고 계셨어요?!'],
-      ['casual', '숫자는 거짓말을 안 해서 좋아요. …사람 마음은 어렵지만.'],
-      ['proud', '오늘 자료 정리, 꽤 완벽했던 것 같아요. 흠흠.'],
-      ['worried', '선생님, 아까부터 한 자세로 계셨죠? 어깨 한 번 펴세요. …업무 효율 때문이에요.'],
-      ['casual', '커피 세 잔째… 저 말고 선생님 얘기예요. 물도 좀 드세요.'],
-      ['embarrassed', '혹시 제 혼잣말 다 들리는 거 아니죠…? 못 들은 걸로 해 주세요.'],
-      ['proud', '오늘 일정표도 정리 끝. …이 정도는 비서로서 당연하죠.'],
-      ['casual', '창밖 날씨 좋네요. 저는 여기서 숫자 세는 게 더 좋지만요. …진짜로요.'],
+    const dyn = [
       up ? ['surprised', '어머, ' + up.name + ' ' + (up.d1 >= 0 ? '+' : '') + up.d1.toFixed(1) + '%… 오늘 제일 신났네요.'] : null,
       dn && dn.d1 < -2 ? ['worried', dn.name + '는 ' + dn.d1.toFixed(1) + '%… 괜히 제가 다 신경 쓰이네요.'] : null,
       w ? ['proud', '선생님 관심 종목 ' + w.name + ', 오늘 ' + (w.d1 >= 0 ? '+' : '') + w.d1.toFixed(1) + '%. …따, 딱히 계속 지켜본 건 아니에요.'] : null,
@@ -690,15 +682,21 @@
       dow === 0 || dow === 6 ? ['casual', '주말엔 장도 쉬는데… 선생님도 좀 쉬셨으면.'] : null,
       lv >= 2 ? ['embarrassed', '요즘 선생님이랑 얘기하는 시간이… 조금, 아주 조금 기다려져요.'] : null,
       lv >= 3 ? ['stock', '오늘도 와 주셔서 고마워요. …이번만 솔직하게 말한 거예요.'] : null,
-    ].filter(Boolean);
-    return pool[Math.floor(Math.random() * pool.length)];
+    ].filter((x) => x && !soloUsed.has(x[1]));
+    if (dyn.length && (!soloBank.length || Math.random() < 0.3)) { const x = dyn[Math.floor(Math.random() * dyn.length)]; soloUsed.add(x[1]); return x; }
+    if (!soloBank.length) return ['casual', '…오늘도 별일 없이 지나가면 좋겠어요.'];
+    let bag = []; try { bag = JSON.parse(localStorage.getItem('vtb-solo-bag') || '[]'); } catch (e) {}
+    bag = bag.filter((i) => i < soloBank.length);
+    if (!bag.length) { bag = soloBank.map((_, i) => i); for (let i = bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]]; } }
+    const k = bag.pop(); try { localStorage.setItem('vtb-solo-bag', JSON.stringify(bag)); } catch (e) {}
+    return [soloBank[k].mood, soloBank[k].text];
   }
   let lastAct = Date.now(), soloCount = 0, soloTimer = null;
   root.addEventListener('pointerdown', () => { lastAct = Date.now(); });
   qi.addEventListener('input', () => { lastAct = Date.now(); });
   function soloTick() {
     soloTimer = setTimeout(soloTick, (4 + Math.random() * 4) * 60e3);
-    if (document.hidden || !pc() || soloCount >= 8 || Date.now() - lastAct < 90e3 || root.classList.contains('talking')) return;
+    if (document.hidden || !pc() || soloCount >= 10 || Date.now() - lastAct < 90e3 || root.classList.contains('talking')) return;
     const [mood, text] = soloLine(); soloCount++;
     if (!box.hidden) { setMood(mood); bubble('bot', text, { mood, type: true, solo: true }); }
     else { showBalloon(text, null, mood); }
