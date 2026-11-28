@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281328">
+<html lang="ko" data-build="202611281332">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3187,6 +3187,7 @@
   window.__vtbAnswer = answer;
   /* ---------- 화면 (메신저형: 위쪽 프로필 + 말풍선) ---------- */
   const AV = { stock: 'img/avatar_stock.webp', casual: 'img/avatar_casual.webp' };
+  const PT = { stock: 'img/portrait_stock.webp', casual: 'img/portrait_casual.webp' };
   const NAME = 'AI 비서';
   const css = document.createElement('style');
   css.textContent = `
@@ -3196,17 +3197,19 @@
   .vtb-box[hidden],.vtb-fab[hidden]{display:none!important}
   .vtb-box{width:340px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 36px);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:hidden}
   .vtb-box>*:not(.vtb-log){flex:none}
-  .vtb-head{display:flex;align-items:center;gap:10px;padding:10px 44px 10px 12px;background:linear-gradient(135deg,rgba(192,57,43,.12),rgba(224,134,47,.12));border-bottom:1px solid var(--color-border-line)}
-  .vtb-head img{width:54px;height:54px;border-radius:40%;object-fit:cover;border:2px solid #e0862f;background:#fff;transition:transform .2s}
-  .vtb.talking .vtb-head img{animation:vtbtalk .3s ease-in-out infinite alternate}
-  @keyframes vtbtalk{from{transform:translateY(0) scale(1)}to{transform:translateY(-2px) scale(1.04)}}
-  .vtb-head b{display:block;font-size:15px}.vtb-head span{font-size:12px;color:var(--color-fg-muted)}
+  .vtb-head{position:relative;height:min(280px,34vh);background:#f6f3ee;border-bottom:1px solid var(--color-border-line);overflow:hidden}
+  .vtb-head .pt{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 8%;opacity:0;transition:opacity .35s ease}
+  .vtb-head .pt.on{opacity:1}
+  .vtb.talking .vtb-head .pt.on{animation:vtbtalk .35s ease-in-out infinite alternate}
+  @keyframes vtbtalk{from{transform:translateY(0) scale(1)}to{transform:translateY(-3px) scale(1.012)}}
+  .vtb-head .cap{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 8px;background:linear-gradient(transparent,rgba(0,0,0,.62));color:#fff}
+  .vtb-head b{display:block;font-size:16px}.vtb-head span{font-size:12.5px;opacity:.9}
   .vtb-x{position:absolute;top:12px;right:10px;z-index:2;border:0;background:rgba(0,0,0,.35);color:#fff;border-radius:999px;width:26px;height:26px;cursor:pointer}
   .vtb-sub{display:none;max-height:120px;overflow:auto;padding:9px 12px;font-size:14px;line-height:1.55;border-bottom:1px solid var(--color-border-line);background:rgba(224,134,47,.06)}
   .vtb.brief .vtb-sub{display:block}
   .vtb-log{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:160px;max-height:360px;overflow:auto;padding:10px}
-  .vtb-row{display:flex;gap:7px;align-items:flex-start;max-width:94%}
-  .vtb-row>img{width:34px;height:34px;border-radius:40%;object-fit:cover;flex:none;border:1px solid var(--color-border-line);background:#fff}
+  .vtb-row{display:flex;gap:8px;align-items:flex-start;max-width:94%}
+  .vtb-row>img{width:52px;height:52px;border-radius:40%;object-fit:cover;flex:none;border:1px solid var(--color-border-line);background:#fff}
   .vtb-row .who{font-size:11.5px;color:var(--color-fg-muted);margin:0 0 2px 2px}
   .vtb-m{padding:7px 10px;border-radius:12px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
   .vtb-m.me{align-self:flex-end;max-width:85%;background:#c0392b;color:#fff;border-top-right-radius:4px}
@@ -3234,7 +3237,7 @@
   root.innerHTML = `<button class="vtb-fab" type="button"><img src="${AV.stock}" alt="">${NAME}</button>
   <div class="vtb-box" hidden>
     <button class="vtb-x" type="button" aria-label="닫기">✕</button>
-    <div class="vtb-head"><img src="${AV.stock}" alt="${NAME} 프로필"><div><b>${NAME}</b><span data-a="status">주식 얘기도, 수다도 OK</span></div></div>
+    <div class="vtb-head"><img class="pt on" data-m="stock" src="${PT.stock}" alt="${NAME}"><img class="pt" data-m="casual" src="${PT.casual}" alt=""><div class="cap"><b>${NAME}</b><span data-a="status">주식 얘기도, 수다도 OK</span></div></div>
     <div class="vtb-sub"></div>
     <div class="vtb-log" aria-live="polite"><div class="vtb-hello">▶ 브리핑을 누르면 오늘 시장을 읽어 드려요.<br>아래에 궁금한 걸 물어보세요.</div></div>
     <form class="vtb-q"><input type="search" placeholder="예: 소니 목표주가, 오늘 제일 오른 종목" aria-label="메시지 입력"><button type="submit" aria-label="보내기">➤</button><button type="button" data-a="mic" aria-label="말로 묻기">🎤</button></form>
@@ -3245,8 +3248,8 @@
     <div class="vtb-note">브리핑은 AI 음성 · 채팅은 대시보드 자료로 답하고, 어려운 질문·수다는 Google AI가 답해요(틀릴 수 있음). 대화는 이 브라우저에만 저장되고 AI로 전송되니 개인정보는 적지 마세요.</div>
   </div>`;
   const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-head'), sub = root.querySelector('.vtb-sub');
-  const headImg = root.querySelector('.vtb-head img'), statusEl = root.querySelector('[data-a="status"]');
-  const setMood = (m) => { headImg.src = AV[m] || AV.stock; statusEl.textContent = m === 'casual' ? '…흥, 수다 상대 해 드릴게요' : '친절한 주식 비서 모드'; };
+  const statusEl = root.querySelector('[data-a="status"]');
+  const setMood = (m) => { m = m === 'casual' ? 'casual' : 'stock'; root.querySelectorAll('.vtb-head .pt').forEach((im) => im.classList.toggle('on', im.dataset.m === m)); statusEl.textContent = m === 'casual' ? '…흥, 수다 상대 해 드릴게요' : '친절한 주식 비서 모드'; };
   const vsel = root.querySelector('[data-a="voice"]'), rsel = root.querySelector('[data-a="rate"]');
   const show = () => { if (!pc()) { root.hidden = true; return; } root.hidden = false; };
   document.body.append(root); show(); window.addEventListener('resize', show);
