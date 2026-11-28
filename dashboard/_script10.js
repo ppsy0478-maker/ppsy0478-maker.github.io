@@ -355,7 +355,7 @@
   css.textContent = `
   .vtb{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--font-anthropic-sans);color:var(--color-fg)}
   .vtb-fab{border:0;border-radius:999px;padding:12px 18px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#c0392b,#e0862f);box-shadow:0 6px 20px rgba(0,0,0,.25)}
-  .vtb-box{width:300px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 36px);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:hidden}
+  .vtb-box[hidden]{display:none!important}.vtb-box{width:300px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 36px);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:hidden}
   .vtb-stage{position:relative;height:300px;overflow:hidden;flex:none;background:radial-gradient(circle at 50% 35%,rgba(224,134,47,.18),transparent 70%)}
   .vtb-stage canvas{width:100%;height:100%;display:block}
   .vtb-fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
@@ -463,8 +463,8 @@
   const HKEY = 'vtb-chat-v1'; let hist = [];
   try { hist = JSON.parse(localStorage.getItem(HKEY) || '[]').slice(-24); } catch (e) { hist = []; }
   const saveHist = () => { try { localStorage.setItem(HKEY, JSON.stringify(hist.slice(-24))); } catch (e) {} };
-  let chatApi = null;
-  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; chatApiReady = () => !!chatApi; }).catch(() => {});
+  let chatApi = null, persona = '';
+  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; chatApiReady = () => !!chatApi; persona = c && c.persona ? String(c.persona) : ''; }).catch(() => {});
   function goTo(l) {
     const b = document.querySelector('.sj .sj-tab[data-go="' + (l.code ? 'detail' : l.tab) + '"]'); if (b) b.click();
     if (l.code) setTimeout(() => { const sel = document.querySelector('[data-draw="dt-select"]'); if (sel) { sel.value = l.code; sel.dispatchEvent(new Event('change')); } const h = document.getElementById('h-detail'); if (h) h.scrollIntoView({ block: 'start' }); }, 60);
@@ -480,7 +480,7 @@
   }
   async function askAI(q, casual) {
     const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 50000);
-    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', context: casual ? casualContext() : aiContext(q), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
+    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', persona: casual ? persona : '', context: casual ? casualContext() : aiContext(q), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.answer) throw new Error(j.error || ('HTTP ' + r.status));
     return String(j.answer).trim();
@@ -491,9 +491,9 @@
     const lines = answer(q), links = linksFor(q);
     let text = lines.join('\n'), ai = false, note = '';
     if (!meta.ok && chatApi) {
-      const w = bubble('bot', meta.casual ? '음… 💭' : '자료를 살펴보는 중이에요…', { wait: true });
+      const w = bubble('bot', meta.casual ? '…흥. 잠깐만 💭' : '자료를 살펴보는 중이에요…', { wait: true });
       try { text = await askAI(q, meta.casual); ai = true; note = meta.casual ? '' : 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.'; }
-      catch (e) { if (meta.casual) text = '앗, 지금은 머리가 잘 안 돌아가요. 조금 있다가 다시 말 걸어 주세요!'; note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝났어요.' : 'AI 연결이 안 됐어요.'; }
+      catch (e) { if (meta.casual) text = '지, 지금은 좀 바쁘거든! …조금 있다가 다시 말 걸어. 기다리고 있을 테니까.'; note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝났어요.' : 'AI 연결이 안 됐어요.'; }
       w.remove();
     }
     bubble('bot', text, { ai: ai && !meta.casual, links: meta.casual ? [] : links, note });
