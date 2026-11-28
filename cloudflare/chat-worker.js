@@ -59,19 +59,33 @@ export default {
       .map((h) => ({ role: h.role, parts: [{ text: String(h.text || '').slice(0, 600) }] }));
     if (!q) return json({ error: 'empty question' }, 400, cors);
 
-    const model = env.MODEL || 'gemini-flash-latest';
     const payload = {
       systemInstruction: { parts: [{ text: SYSTEM + '\n\n[대시보드 자료]\n' + context }] },
       contents: [...history, { role: 'user', parts: [{ text: q }] }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 900 },
+      generationConfig: { temperature: 0.4, maxOutputTokens: 1200 },
     };
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload),
-    });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) return json({ error: (r.status === 429 ? 'quota limit' : 'upstream error') + ' ' + r.status }, r.status === 429 ? 429 : 502, cors);
-    const answer = ((j.candidates || [])[0]?.content?.parts || []).map((p) => p.text || '').join('').trim();
-    if (!answer) return json({ error: 'empty answer' }, 502, cors);
-    return json({ answer }, 200, cors);
+    // 붐비면(503·429·시간초과) 다음 모델로 다시 시도
+    const models = [...new Set([env.MODEL || 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'])];
+    let last = '';
+    for (const model of models) {
+      const ac = new AbortController(); const timer = setTimeout(() => ac.abort(), 20000);
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+          method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify(payload),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) {
+          const answer = ((j.candidates || [])[0]?.content?.parts || []).filter((p) => !p.thought).map((p) => p.text || '').join('').trim();
+          if (answer) return json({ answer, model }, 200, cors);
+          last = model + ': empty answer';
+        } else {
+          last = model + ': ' + r.status + ' ' + String(j.error?.message || '').slice(0, 160);
+          if (![429, 500, 503, 404].includes(r.status)) break;
+        }
+      } catch (e) {
+        last = model + ': ' + (e.name === 'AbortError' ? 'timeout' : String(e).slice(0, 120));
+      } finally { clearTimeout(timer); }
+    }
+    return json({ error: (/429/.test(last) ? 'quota limit ' : 'upstream error ') + last }, /429/.test(last) ? 429 : 502, cors);
   },
 };

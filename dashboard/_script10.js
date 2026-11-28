@@ -465,7 +465,8 @@
     log.append(m); while (log.children.length > 40) log.firstChild.remove(); log.scrollTop = log.scrollHeight; return m;
   }
   async function askAI(q) {
-    const r = await fetch(chatApi, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, context: aiContext(q), history: hist.slice(-6) }) });
+    const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 50000);
+    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, context: aiContext(q), history: hist.slice(-6) }) }).finally(() => clearTimeout(tm));
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.answer) throw new Error(j.error || ('HTTP ' + r.status));
     return String(j.answer).trim();
