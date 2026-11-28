@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281319">
+<html lang="ko" data-build="202611281328">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -2834,13 +2834,9 @@
   window.__dashLoad();
 })();
 
-/* AI 브리핑 캐릭터 (PC 전용, 깃허브판만): Live2D 무료 샘플 모델 + 브라우저 내장 음성(Web Speech) — 서버·요금 없음 */
+/* AI 비서 (PC 전용, 깃허브판만): 메신저형 채팅 + AI 음성 브리핑 */
 (() => {
   if (window.__vtb) return; window.__vtb = 1;
-  const MODEL = 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display@master/test/assets/haru/haru_greeter_t03.model3.json';
-  const LIBS = ['https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js',
-    'https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js',
-    'https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js'];
   const pc = () => window.matchMedia('(min-width: 1000px) and (pointer: fine)').matches;
   const rowsOf = (n) => { const d = dash.data(n); return d.status === 'ok' && Array.isArray(d.data) ? d.data : []; };
   const md = (d) => +String(d).slice(5, 7) + '월 ' + +String(d).slice(8, 10) + '일';
@@ -3189,58 +3185,68 @@
   window.__vtbContext = aiContext;
   window.__vtbScript = script;
   window.__vtbAnswer = answer;
-  /* ---------- 화면 ---------- */
+  /* ---------- 화면 (메신저형: 위쪽 프로필 + 말풍선) ---------- */
+  const AV = { stock: 'img/avatar_stock.webp', casual: 'img/avatar_casual.webp' };
+  const NAME = 'AI 비서';
   const css = document.createElement('style');
   css.textContent = `
   .vtb{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--font-anthropic-sans);color:var(--color-fg)}
-  .vtb-fab{border:0;border-radius:999px;padding:12px 18px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#c0392b,#e0862f);box-shadow:0 6px 20px rgba(0,0,0,.25)}
-  .vtb-box[hidden]{display:none!important}.vtb-box{width:300px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 36px);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:hidden}
-  .vtb-stage{position:relative;height:300px;overflow:hidden;flex:none;background:radial-gradient(circle at 50% 35%,rgba(224,134,47,.18),transparent 70%)}
-  .vtb-stage canvas{width:100%;height:100%;display:block}
-  .vtb-fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
-  .vtb-fallback img{width:150px;height:150px;border-radius:50%;object-fit:cover;border:3px solid #e0862f}
-  .vtb.talking .vtb-fallback img{animation:vtbtalk .28s ease-in-out infinite alternate}
-  @keyframes vtbtalk{from{transform:translateY(0) scale(1)}to{transform:translateY(-4px) scale(1.03)}}
-  .vtb-sub{min-height:66px;max-height:120px;overflow:auto;padding:10px 12px;font-size:14.5px;line-height:1.55;border-top:1px solid var(--color-border-line)}
-  .vtb-bar{display:flex;gap:6px;align-items:center;padding:8px 10px;border-top:1px solid var(--color-border-line);flex-wrap:wrap}
-  .vtb-bar button{font:inherit;font-size:13.5px;padding:6px 10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
-  .vtb-bar button.main{background:#c0392b;color:#fff;border-color:#c0392b;font-weight:700}
-  .vtb-bar select{font:inherit;font-size:12.5px;padding:4px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);max-width:120px}
-  .vtb-note{font-size:11px;color:var(--color-fg-muted);padding:0 12px 8px}
-  .vtb-q{display:flex;gap:6px;padding:8px 10px 0}
-  .vtb-q input{flex:1;min-width:0;font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg)}
-  .vtb-q button{font-size:15px;padding:4px 9px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);cursor:pointer}
-  .vtb-q button.on{background:#c0392b;border-color:#c0392b}
-  .vtb-log{display:none;flex-direction:column;gap:8px;max-height:300px;overflow:auto;padding:10px 10px 4px;border-top:1px solid var(--color-border-line)}
-  .vtb.chat .vtb-log{display:flex;flex:1 1 auto;min-height:120px}.vtb.chat .vtb-stage{height:150px}.vtb.nochar .vtb-stage{height:0}.vtb.nochar .vtb-x{top:4px;right:4px;width:22px;height:22px}
-  .vtb-box>*:not(.vtb-log){flex:none}.vtb.chat .vtb-sub{display:none}.vtb.chat.brief .vtb-sub{display:block}
-  .vtb-m{max-width:88%;padding:7px 10px;border-radius:12px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
-  .vtb-m.me{align-self:flex-end;background:#c0392b;color:#fff;border-bottom-right-radius:4px}
-  .vtb-m.bot{align-self:flex-start;background:var(--color-bg);border:1px solid var(--color-border-line);border-bottom-left-radius:4px}
+  .vtb-fab{display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:6px 16px 6px 6px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#c0392b,#e0862f);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+  .vtb-fab img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff}
+  .vtb-box[hidden],.vtb-fab[hidden]{display:none!important}
+  .vtb-box{width:340px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 36px);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:hidden}
+  .vtb-box>*:not(.vtb-log){flex:none}
+  .vtb-head{display:flex;align-items:center;gap:10px;padding:10px 44px 10px 12px;background:linear-gradient(135deg,rgba(192,57,43,.12),rgba(224,134,47,.12));border-bottom:1px solid var(--color-border-line)}
+  .vtb-head img{width:54px;height:54px;border-radius:40%;object-fit:cover;border:2px solid #e0862f;background:#fff;transition:transform .2s}
+  .vtb.talking .vtb-head img{animation:vtbtalk .3s ease-in-out infinite alternate}
+  @keyframes vtbtalk{from{transform:translateY(0) scale(1)}to{transform:translateY(-2px) scale(1.04)}}
+  .vtb-head b{display:block;font-size:15px}.vtb-head span{font-size:12px;color:var(--color-fg-muted)}
+  .vtb-x{position:absolute;top:12px;right:10px;z-index:2;border:0;background:rgba(0,0,0,.35);color:#fff;border-radius:999px;width:26px;height:26px;cursor:pointer}
+  .vtb-sub{display:none;max-height:120px;overflow:auto;padding:9px 12px;font-size:14px;line-height:1.55;border-bottom:1px solid var(--color-border-line);background:rgba(224,134,47,.06)}
+  .vtb.brief .vtb-sub{display:block}
+  .vtb-log{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:160px;max-height:360px;overflow:auto;padding:10px}
+  .vtb-row{display:flex;gap:7px;align-items:flex-start;max-width:94%}
+  .vtb-row>img{width:34px;height:34px;border-radius:40%;object-fit:cover;flex:none;border:1px solid var(--color-border-line);background:#fff}
+  .vtb-row .who{font-size:11.5px;color:var(--color-fg-muted);margin:0 0 2px 2px}
+  .vtb-m{padding:7px 10px;border-radius:12px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+  .vtb-m.me{align-self:flex-end;max-width:85%;background:#c0392b;color:#fff;border-top-right-radius:4px}
+  .vtb-m.bot{background:var(--color-bg);border:1px solid var(--color-border-line);border-top-left-radius:4px}
   .vtb-m.bot .ai{display:inline-block;font-size:10.5px;font-weight:700;color:#e0862f;border:1px solid #e0862f;border-radius:4px;padding:0 4px;margin-right:4px;vertical-align:1px}
   .vtb-m.bot .lk{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
   .vtb-m.bot .lk button{font:inherit;font-size:12px;padding:2px 7px;border-radius:6px;border:1px solid #e0862f;background:transparent;color:var(--color-fg);cursor:pointer}
   .vtb-m.bot small{display:block;margin-top:4px;font-size:11px;color:var(--color-fg-muted)}
   .vtb-m.wait{opacity:.7;font-style:italic}
-  .vtb-box{width:340px}
+  .vtb-hello{font-size:13px;color:var(--color-fg-muted);text-align:center;margin:auto 0}
+  .vtb-q{display:flex;gap:6px;padding:8px 10px 0;border-top:1px solid var(--color-border-line)}
+  .vtb-q input{flex:1;min-width:0;font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg)}
+  .vtb-q button{font-size:15px;padding:4px 9px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);cursor:pointer}
+  .vtb-q button.on{background:#c0392b;border-color:#c0392b}
   .vtb-chips{display:flex;flex-wrap:wrap;gap:5px;padding:6px 10px 0}
   .vtb-chips button{font:inherit;font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
   .vtb-chips button:hover{border-color:#e0862f}
-  .vtb-x{position:absolute;top:8px;right:8px;z-index:2;border:0;background:rgba(0,0,0,.35);color:#fff;border-radius:999px;width:26px;height:26px;cursor:pointer}`;
+  .vtb-bar{display:flex;gap:6px;align-items:center;padding:8px 10px;flex-wrap:wrap}
+  .vtb-bar button{font:inherit;font-size:13.5px;padding:6px 10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
+  .vtb-bar button.main{background:#c0392b;color:#fff;border-color:#c0392b;font-weight:700}
+  .vtb-bar select{font:inherit;font-size:12.5px;padding:4px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);max-width:120px}
+  .vtb-note{font-size:11px;color:var(--color-fg-muted);padding:0 12px 8px}`;
   document.head.append(css);
   const root = document.createElement('div'); root.className = 'vtb';
-  root.innerHTML = `<button class="vtb-fab" type="button">🎙 AI 브리핑</button>
+  root.innerHTML = `<button class="vtb-fab" type="button"><img src="${AV.stock}" alt="">${NAME}</button>
   <div class="vtb-box" hidden>
-    <button class="vtb-x" type="button" aria-label="접기">✕</button><div class="vtb-stage"><div class="vtb-fallback"><img src="../img/title-cat.jpg" alt="브리핑 캐릭터"></div></div>
-    <div class="vtb-log" aria-live="polite"></div><div class="vtb-sub">▶ 를 누르면 오늘 시장을 브리핑해 드려요. 아래에 궁금한 걸 물어봐도 돼요.</div>
-    <form class="vtb-q"><input type="search" placeholder="예: 소니 목표주가, 오늘 제일 오른 종목" aria-label="캐릭터에게 질문"><button type="submit" aria-label="검색">🔍</button><button type="button" data-a="mic" aria-label="말로 묻기">🎤</button><button type="button" data-a="read" aria-label="답변 소리내어 읽기" title="답변 소리내어 읽기">🔈</button></form>
+    <button class="vtb-x" type="button" aria-label="닫기">✕</button>
+    <div class="vtb-head"><img src="${AV.stock}" alt="${NAME} 프로필"><div><b>${NAME}</b><span data-a="status">주식 얘기도, 수다도 OK</span></div></div>
+    <div class="vtb-sub"></div>
+    <div class="vtb-log" aria-live="polite"><div class="vtb-hello">▶ 브리핑을 누르면 오늘 시장을 읽어 드려요.<br>아래에 궁금한 걸 물어보세요.</div></div>
+    <form class="vtb-q"><input type="search" placeholder="예: 소니 목표주가, 오늘 제일 오른 종목" aria-label="메시지 입력"><button type="submit" aria-label="보내기">➤</button><button type="button" data-a="mic" aria-label="말로 묻기">🎤</button></form>
     <div class="vtb-chips"><button type="button">오늘 제일 오른 종목</button><button type="button">외국인 수급</button><button type="button">이번 주 일정</button><button type="button">배당 높은 종목</button><button type="button">뭘 물어볼 수 있어?</button></div>
     <div class="vtb-bar"><button class="main" type="button" data-a="play">▶ 브리핑</button><button type="button" data-a="pause">⏸</button><button type="button" data-a="stop">■</button>
       <select data-a="rate" aria-label="말 빠르기"><option value="0.9">느리게</option><option value="1.05" selected>보통</option><option value="1.25">빠르게</option></select>
-      <select data-a="voice" aria-label="목소리"></select><button type="button" data-a="char" title="캐릭터 숨기기/보이기" aria-label="캐릭터 숨기기">👤</button></div>
-    <div class="vtb-note">브리핑은 AI 음성 · 채팅은 대시보드 자료로 답하고, 어려운 질문·수다는 Google AI가 답해요(틀릴 수 있음). 대화는 이 브라우저에만 저장되고 AI로 전송되니 개인정보는 적지 마세요 · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
+      <select data-a="voice" aria-label="목소리"></select></div>
+    <div class="vtb-note">브리핑은 AI 음성 · 채팅은 대시보드 자료로 답하고, 어려운 질문·수다는 Google AI가 답해요(틀릴 수 있음). 대화는 이 브라우저에만 저장되고 AI로 전송되니 개인정보는 적지 마세요.</div>
   </div>`;
-  const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-stage'), sub = root.querySelector('.vtb-sub');
+  const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-head'), sub = root.querySelector('.vtb-sub');
+  const headImg = root.querySelector('.vtb-head img'), statusEl = root.querySelector('[data-a="status"]');
+  const setMood = (m) => { headImg.src = AV[m] || AV.stock; statusEl.textContent = m === 'casual' ? '…흥, 수다 상대 해 드릴게요' : '친절한 주식 비서 모드'; };
   const vsel = root.querySelector('[data-a="voice"]'), rsel = root.querySelector('[data-a="rate"]');
   const show = () => { if (!pc()) { root.hidden = true; return; } root.hidden = false; };
   document.body.append(root); show(); window.addEventListener('resize', show);
@@ -3262,26 +3268,11 @@
   /* ---------- 캐릭터 ---------- */
   let model = null, talking = false, loading = null;
   const loadScript = (src) => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.append(s); });
-  function initModel() {
-    if (loading) return loading;
-    loading = (async () => {
-      for (const u of LIBS) await loadScript(u);
-      const PIXI = window.PIXI; const canvas = document.createElement('canvas'); stage.append(canvas);
-      const app = new PIXI.Application({ view: canvas, autoStart: true, backgroundAlpha: 0, width: stage.clientWidth, height: stage.clientHeight, resolution: Math.min(2, window.devicePixelRatio || 1), autoDensity: true });
-      model = await PIXI.live2d.Live2DModel.from(MODEL, { autoInteract: false });
-      app.stage.addChild(model);
-      const fit = () => { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return; app.renderer.resize(w, h); const s = h / model.internalModel.height * 1.75; model.scale.set(s); model.anchor.set(0.5, 0); model.x = w / 2; model.y = 6; }; window.__vtbModel = model;
-      fit(); if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
-      let t = 0;
-      model.internalModel.on('beforeModelUpdate', () => { t += 0.35; const v = !talking ? 0 : (analyser && audioEl && !audioEl.paused) ? audioLevel() : Math.max(0, Math.sin(t) * 0.6 + Math.sin(t * 2.3) * 0.35 + 0.2); model.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', Math.min(1, v)); });
-      stage.addEventListener('click', () => { try { model.motion('TapBody'); } catch (e) {} });
-    })().catch(() => { stage.querySelector('.vtb-fallback').style.display = 'flex'; });
-    return loading;
-  }
+  function initModel() { return null; }
 
   /* ---------- 재생 ---------- */
   let queue = [], idx = 0;
-  const setTalk = (on) => { talking = on; root.classList.toggle('talking', on); };
+  const setTalk = (on) => { talking = on; root.classList.toggle('talking', on); if (on && root.classList.contains('brief')) setMood('stock'); };
   function speakNext() {
     if (idx >= queue.length) { setTalk(false); return; }
     const text = queue[idx]; sub.textContent = text;
@@ -3295,10 +3286,7 @@
   }
   function playLines(lines) { stopAudio(); if (synth) synth.cancel(); queue = lines; idx = 0; speakNext(); }
   const qf = root.querySelector('.vtb-q'), qi = qf.querySelector('input'), mic = qf.querySelector('[data-a="mic"]');
-  const log = root.querySelector('.vtb-log'), readBtn = qf.querySelector('[data-a="read"]');
-  let readOn = false; try { readOn = localStorage.getItem('vtb-read') === '1'; } catch (e) {}
-  const paintRead = () => { readBtn.textContent = readOn ? '🔊' : '🔈'; readBtn.classList.toggle('on', readOn); };
-  paintRead(); readBtn.onclick = () => { readOn = !readOn; paintRead(); try { localStorage.setItem('vtb-read', readOn ? '1' : '0'); } catch (e) {} if (!readOn && synth) { synth.cancel(); setTalk(false); } };
+  const log = root.querySelector('.vtb-log');
   const HKEY = 'vtb-chat-v1'; let hist = [];
   try { hist = JSON.parse(localStorage.getItem(HKEY) || '[]').slice(-24); } catch (e) { hist = []; }
   const saveHist = () => { try { localStorage.setItem(HKEY, JSON.stringify(hist.slice(-24))); } catch (e) {} };
@@ -3309,13 +3297,15 @@
     if (l.code) setTimeout(() => { const sel = document.querySelector('[data-draw="dt-select"]'); if (sel) { sel.value = l.code; sel.dispatchEvent(new Event('change')); } const h = document.getElementById('h-detail'); if (h) h.scrollIntoView({ block: 'start' }); }, 60);
   }
   function bubble(kind, text, opt = {}) {
-    root.classList.add('chat'); root.classList.remove('brief');
+    const hello = log.querySelector('.vtb-hello'); if (hello) hello.remove();
     const m = document.createElement('div'); m.className = 'vtb-m ' + kind + (opt.wait ? ' wait' : '');
     if (opt.ai) { const b = document.createElement('span'); b.className = 'ai'; b.textContent = 'AI'; m.append(b); }
     m.append(document.createTextNode(text));
     if (opt.links && opt.links.length) { const lk = document.createElement('div'); lk.className = 'lk'; opt.links.forEach((l) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = l.label; b.onclick = () => goTo(l); lk.append(b); }); m.append(lk); }
     if (opt.note) { const sm = document.createElement('small'); sm.textContent = opt.note; m.append(sm); }
-    log.append(m); while (log.children.length > 40) log.firstChild.remove(); log.scrollTop = log.scrollHeight; return m;
+    let el = m;
+    if (kind === 'bot') { el = document.createElement('div'); el.className = 'vtb-row'; const im = document.createElement('img'); im.src = AV[opt.mood] || AV.stock; im.alt = ''; const col = document.createElement('div'); const who = document.createElement('div'); who.className = 'who'; who.textContent = NAME; col.append(who, m); el.append(im, col); }
+    log.append(el); while (log.children.length > 40) log.firstChild.remove(); log.scrollTop = log.scrollHeight; return el;
   }
   async function askAI(q, casual) {
     const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 50000);
@@ -3330,22 +3320,20 @@
     const lines = answer(q), links = linksFor(q);
     let text = lines.join('\n'), ai = false, note = '';
     if (!meta.ok && chatApi) {
-      const w = bubble('bot', meta.casual ? '그, 금방 답해 드릴게요… 💭' : '선생님, 자료 확인하고 있어요…', { wait: true });
+      setMood(meta.casual ? 'casual' : 'stock');
+      const w = bubble('bot', meta.casual ? '그, 금방 답해 드릴게요… 💭' : '선생님, 자료 확인하고 있어요…', { wait: true, mood: meta.casual ? 'casual' : 'stock' });
       try { text = await askAI(q, meta.casual); ai = true; if (!meta.casual && personaStock.includes('선생님') && !/^선생님/.test(text)) text = '선생님, ' + text; note = meta.casual ? '' : 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.'; }
       catch (e) { if (meta.casual) text = '지, 지금은 업무가 밀려서요…! 조금 있다가 다시 말 걸어 주세요. …기다리고 있을게요.'; note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝났어요.' : 'AI 연결이 안 됐어요.'; }
       w.remove();
     }
-    bubble('bot', text, { ai: ai && !meta.casual, links: meta.casual ? [] : links, note });
-    hist.push({ role: 'user', text: q }, { role: 'model', text: text.slice(0, 600) }); while (hist.length > 24) hist.shift(); saveHist();
-    if (readOn) playLines(ai ? text.split(/(?<=[.!?。])\s+/).filter(Boolean) : lines);
+    const mood = meta.casual ? 'casual' : 'stock'; setMood(mood);
+    bubble('bot', text, { ai: ai && !meta.casual, links: meta.casual ? [] : links, note, mood });
+    hist.push({ role: 'user', text: q }, { role: 'model', text: text.slice(0, 600), mood }); while (hist.length > 24) hist.shift(); saveHist();
   };
   window.__vtbAsk = ask;
-  const charBtn = root.querySelector('[data-a="char"]');
-  try { if (localStorage.getItem('vtb-nochar') === '1') root.classList.add('nochar'); } catch (e) {}
-  charBtn.onclick = () => { const on = root.classList.toggle('nochar'); try { localStorage.setItem('vtb-nochar', on ? '1' : '0'); } catch (e) {} };
-  if (hist.length) { hist.slice(-10).forEach((h) => bubble(h.role === 'user' ? 'me' : 'bot', h.text)); }
+  if (hist.length) { hist.slice(-10).forEach((h) => bubble(h.role === 'user' ? 'me' : 'bot', h.text, { mood: h.mood })); }
   const clr = document.createElement('button'); clr.type = 'button'; clr.textContent = '대화 지우기';
-  clr.onclick = () => { hist = []; saveHist(); log.replaceChildren(); root.classList.remove('chat'); };
+  clr.onclick = () => { hist = []; saveHist(); log.replaceChildren(); setMood('stock'); };
   root.querySelector('.vtb-chips').append(clr);
   qf.onsubmit = (e) => { e.preventDefault(); ask(qi.value); qi.value = ''; };
   root.querySelectorAll('.vtb-chips button').forEach((b) => { b.onclick = () => ask(b.textContent); });
