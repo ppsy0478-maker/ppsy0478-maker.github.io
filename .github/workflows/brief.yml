@@ -9,6 +9,7 @@ on:
       - 'dashboard/data/calendar.csv'
       - 'scripts/brief_script.py'
       - 'scripts/tts_brief.py'
+      - '.github/workflows/brief.yml'
   workflow_dispatch:
 concurrency:
   group: brief
@@ -26,14 +27,25 @@ jobs:
           python-version: '3.10'
           cache: pip
           cache-dependency-path: .github/workflows/brief.yml
-      - name: 설치
+      - name: 음성 만들기
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
+          ELEVENLABS_MODEL: ${{ vars.ELEVENLABS_MODEL }}
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
-          pip install -q torch==2.4.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cpu
-          pip install -q git+https://github.com/myshell-ai/MeloTTS.git
-          python -m unidic download
-      - name: 음성 만들기
-        run: python scripts/tts_brief.py
+          pip install -q numpy
+          melo() {
+            pip install -q torch==2.4.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cpu
+            pip install -q git+https://github.com/myshell-ai/MeloTTS.git
+            python -m unidic download
+            FORCE_MELO=1 python scripts/tts_brief.py
+          }
+          if [ -n "$ELEVENLABS_API_KEY" ] && [ -n "$ELEVENLABS_VOICE_ID" ]; then
+            python scripts/tts_brief.py || { echo "ElevenLabs 실패, MeloTTS로 대체"; melo; }
+          else
+            melo
+          fi
       - name: 올리기
         run: |
           git config user.name "brief-bot"
