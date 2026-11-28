@@ -9,8 +9,8 @@
       made.lines.selectAll('text').remove();
       const rows = d.data.slice().sort((a, b) => a.date.localeCompare(b.date));
       const mk = (name, key) => ({ name, values: rows.map((r) => ({ date: r.date, y: +r[key] })) });
-      lineChart(el, made, [mk('62종목 닛케이식', 'nikkei_style_100'), mk('62종목 TOPIX식', 'topix_style_100'), mk('닛케이225', 'nikkei225_100')],
-        { label: '9.25를 100으로 맞춘 62종목 지수와 닛케이225의 일별 흐름', tipFmt: d3.format('.1f'), yFmt: d3.format('d') });
+      lineChart(el, made, [mk('닛케이225', 'nikkei225')],
+        { label: '9.25 이후 닛케이225 일별 종가', tipFmt: d3.format(',.2f'), yFmt: d3.format(',') });
     }
   });
 

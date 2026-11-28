@@ -4,7 +4,7 @@
   <div class="sj-top">
   <div class="sj-lede" id="lede">
     <div data-draw="pub-lede">불러오는 중…</div>
-    <p style="margin:0" class="sj-muted">9.25 이후 누적: 62종목 지수(닛케이식) <b data-draw="kpi" data-fmt="pct" data-field="ns_total">—</b>, 닛케이225 <b data-draw="kpi" data-fmt="pct" data-field="n225_total">—</b>.</p>
+    <p style="margin:0" class="sj-muted">9.25 이후 닛케이225 누적 <b data-draw="kpi" data-fmt="pct" data-field="n225_total">—</b>.</p>
   </div>
     <div class="sj-video">
       <iframe src="https://www.youtube-nocookie.com/embed/iyGgzuzAtig?rel=0" title="노래 들으며 보기" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
@@ -37,18 +37,8 @@
 
   <section id="overview" data-tab>
     <div class="sj-cards">
-      <div class="sj-card" id="card-ns">
-        <div class="sj-card-label">62종목 지수 (닛케이식, 9.25 = 10,000)</div>
-        <div class="sj-big" data-draw="kpi" data-fmt="num1" data-field="ns_last">—</div>
-        <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="ns_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="ns_total">—</span></div>
-      </div>
-      <div class="sj-card" id="card-topix">
-        <div class="sj-card-label">62종목 지수 (TOPIX식, 시가총액 가중, 9.25 = 1,000)</div>
-        <div class="sj-big" data-draw="kpi" data-fmt="num1" data-field="tp_last">—</div>
-        <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="tp_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="tp_total">—</span></div>
-      </div>
       <div class="sj-card" id="card-n225">
-        <div class="sj-card-label">닛케이225 (실제)</div>
+        <div class="sj-card-label">닛케이225</div>
         <div class="sj-big" data-draw="kpi" data-fmt="int" data-field="n225_last">—</div>
         <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="n225_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="n225_total">—</span></div>
       </div>
@@ -56,12 +46,7 @@
     <h2 id="h-ov-mnews">오늘의 시장 특징 뉴스</h2>
     <ul class="sj-news" data-draw="ov-mnews"></ul>
     <p class="sj-muted">더 보기: 뉴스 탭 → 시장 특징 뉴스</p>
-    <h2 id="h-index">지수 흐름 (9.25 = 100)</h2>
-    <div class="sj-legend" id="index-legend">
-      <span><i class="sj-sw" data-series="0"></i>62종목 닛케이식</span>
-      <span><i class="sj-sw" data-series="1"></i>62종목 TOPIX식</span>
-      <span><i class="sj-sw" data-series="2"></i>닛케이225 (실제)</span>
-    </div>
+    <h2 id="h-index">닛케이225 흐름 (9.25 이후 종가)</h2>
     <div class="sj-chart" id="chart-index" data-draw="index-chart"></div>
     <div class="sj-two">
       <div id="best"><h2>최근 3거래일 강세 5종목</h2><ul class="sj-list" data-draw="movers-list" data-pick="best"></ul></div>
@@ -96,7 +81,7 @@
     <ul class="sj-news" data-draw="rp-news"></ul>
     <h2 id="h-rp-list">기록된 보고서</h2>
     <div class="sj-tablewrap">
-      <table id="rp-table"><thead><tr><th class="l">날짜</th><th class="l">요약</th><th>닛케이225</th><th>62종목(시총 가중)</th><th class="l">강세</th><th class="l">약세</th></tr></thead>
+      <table id="rp-table"><thead><tr><th class="l">날짜</th><th class="l">요약</th><th>닛케이225</th><th class="l">강세</th><th class="l">약세</th></tr></thead>
         <tbody data-draw="rp-rows"></tbody></table>
     </div>
   </section>
@@ -548,7 +533,7 @@
     <p class="sj-muted">평일 도쿄 장중(9:00~15:30)에 10분마다 깃허브가 야후재팬에서 62종목 현재가를 자동으로 받아 옵니다(실행이 몇 분 늦을 수 있음). 페이지를 열어 두면 5분마다 새 값을 확인합니다. 등락은 전일 종가 대비입니다.</p>
     <div class="sj-stats" id="lv-cards"></div>
     <h3>장중 등락률 추이 <span class="sj-muted" id="lv-day"></span></h3>
-    <div class="sj-legend"><span><i class="sj-sw" style="background:#c0392b"></i>닛케이225</span> <span><i class="sj-sw" style="background:#2563eb"></i>62종목(닛케이식)</span> <span><i class="sj-sw" style="background:#16a34a"></i>62종목(시총 가중)</span></div>
+    <div class="sj-legend"><span><i class="sj-sw" style="background:#c0392b"></i>닛케이225</span></div>
     <div id="lv-trend"></div>
     <h3>종목별 장중 주가</h3>
     <div class="sj-controls"><label>종목 <select class="dash-select" id="lv-pick" aria-label="장중 차트 종목"></select></label> <span class="sj-muted">점선은 전일 종가</span></div>
@@ -627,7 +612,6 @@
     <summary>계산 방법과 출처</summary>
     <ul>
       <li>주가·거래량: 야후재팬 파이낸스 일별 종가와 거래량 (9.25 ~ 최근 거래일).</li>
-      <li>닛케이식 지수: 62종목 주가 합계 ÷ 제수, 9.25 = 10,000. TOPIX식 지수: 시가총액 합계, 9.25 = 1,000.</li>
       <li>시가총액: 9.25(또는 9.29) 시가총액에 매일의 주가 등락률을 곱해 이어 붙인 추정치 (백만엔 → 화면은 십억엔).</li>
       <li>최근 3거래일: 마지막 거래일 종가 ÷ 3거래일 전 종가 − 1.</li>
       <li>자금흐름: 구간 ①9.25~10.8 ②10.9~10.23 ③10.26~11.2 ④11.4~최근 거래일.</li>

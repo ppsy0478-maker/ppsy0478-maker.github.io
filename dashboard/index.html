@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611280939">
+<html lang="ko" data-build="202611280943">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -237,7 +237,7 @@
   <div class="sj-top">
   <div class="sj-lede" id="lede">
     <div data-draw="pub-lede">불러오는 중…</div>
-    <p style="margin:0" class="sj-muted">9.25 이후 누적: 62종목 지수(닛케이식) <b data-draw="kpi" data-fmt="pct" data-field="ns_total">—</b>, 닛케이225 <b data-draw="kpi" data-fmt="pct" data-field="n225_total">—</b>.</p>
+    <p style="margin:0" class="sj-muted">9.25 이후 닛케이225 누적 <b data-draw="kpi" data-fmt="pct" data-field="n225_total">—</b>.</p>
   </div>
     <div class="sj-video">
       <iframe src="https://www.youtube-nocookie.com/embed/iyGgzuzAtig?rel=0" title="노래 들으며 보기" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
@@ -270,18 +270,8 @@
 
   <section id="overview" data-tab>
     <div class="sj-cards">
-      <div class="sj-card" id="card-ns">
-        <div class="sj-card-label">62종목 지수 (닛케이식, 9.25 = 10,000)</div>
-        <div class="sj-big" data-draw="kpi" data-fmt="num1" data-field="ns_last">—</div>
-        <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="ns_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="ns_total">—</span></div>
-      </div>
-      <div class="sj-card" id="card-topix">
-        <div class="sj-card-label">62종목 지수 (TOPIX식, 시가총액 가중, 9.25 = 1,000)</div>
-        <div class="sj-big" data-draw="kpi" data-fmt="num1" data-field="tp_last">—</div>
-        <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="tp_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="tp_total">—</span></div>
-      </div>
       <div class="sj-card" id="card-n225">
-        <div class="sj-card-label">닛케이225 (실제)</div>
+        <div class="sj-card-label">닛케이225</div>
         <div class="sj-big" data-draw="kpi" data-fmt="int" data-field="n225_last">—</div>
         <div class="sj-delta">최근 3거래일 <span data-draw="kpi" data-fmt="pct" data-sign data-field="n225_chg3">—</span> · 9.25 이후 <span data-draw="kpi" data-fmt="pct" data-sign data-field="n225_total">—</span></div>
       </div>
@@ -289,12 +279,7 @@
     <h2 id="h-ov-mnews">오늘의 시장 특징 뉴스</h2>
     <ul class="sj-news" data-draw="ov-mnews"></ul>
     <p class="sj-muted">더 보기: 뉴스 탭 → 시장 특징 뉴스</p>
-    <h2 id="h-index">지수 흐름 (9.25 = 100)</h2>
-    <div class="sj-legend" id="index-legend">
-      <span><i class="sj-sw" data-series="0"></i>62종목 닛케이식</span>
-      <span><i class="sj-sw" data-series="1"></i>62종목 TOPIX식</span>
-      <span><i class="sj-sw" data-series="2"></i>닛케이225 (실제)</span>
-    </div>
+    <h2 id="h-index">닛케이225 흐름 (9.25 이후 종가)</h2>
     <div class="sj-chart" id="chart-index" data-draw="index-chart"></div>
     <div class="sj-two">
       <div id="best"><h2>최근 3거래일 강세 5종목</h2><ul class="sj-list" data-draw="movers-list" data-pick="best"></ul></div>
@@ -329,7 +314,7 @@
     <ul class="sj-news" data-draw="rp-news"></ul>
     <h2 id="h-rp-list">기록된 보고서</h2>
     <div class="sj-tablewrap">
-      <table id="rp-table"><thead><tr><th class="l">날짜</th><th class="l">요약</th><th>닛케이225</th><th>62종목(시총 가중)</th><th class="l">강세</th><th class="l">약세</th></tr></thead>
+      <table id="rp-table"><thead><tr><th class="l">날짜</th><th class="l">요약</th><th>닛케이225</th><th class="l">강세</th><th class="l">약세</th></tr></thead>
         <tbody data-draw="rp-rows"></tbody></table>
     </div>
   </section>
@@ -781,7 +766,7 @@
     <p class="sj-muted">평일 도쿄 장중(9:00~15:30)에 10분마다 깃허브가 야후재팬에서 62종목 현재가를 자동으로 받아 옵니다(실행이 몇 분 늦을 수 있음). 페이지를 열어 두면 5분마다 새 값을 확인합니다. 등락은 전일 종가 대비입니다.</p>
     <div class="sj-stats" id="lv-cards"></div>
     <h3>장중 등락률 추이 <span class="sj-muted" id="lv-day"></span></h3>
-    <div class="sj-legend"><span><i class="sj-sw" style="background:#c0392b"></i>닛케이225</span> <span><i class="sj-sw" style="background:#2563eb"></i>62종목(닛케이식)</span> <span><i class="sj-sw" style="background:#16a34a"></i>62종목(시총 가중)</span></div>
+    <div class="sj-legend"><span><i class="sj-sw" style="background:#c0392b"></i>닛케이225</span></div>
     <div id="lv-trend"></div>
     <h3>종목별 장중 주가</h3>
     <div class="sj-controls"><label>종목 <select class="dash-select" id="lv-pick" aria-label="장중 차트 종목"></select></label> <span class="sj-muted">점선은 전일 종가</span></div>
@@ -860,7 +845,6 @@
     <summary>계산 방법과 출처</summary>
     <ul>
       <li>주가·거래량: 야후재팬 파이낸스 일별 종가와 거래량 (9.25 ~ 최근 거래일).</li>
-      <li>닛케이식 지수: 62종목 주가 합계 ÷ 제수, 9.25 = 10,000. TOPIX식 지수: 시가총액 합계, 9.25 = 1,000.</li>
       <li>시가총액: 9.25(또는 9.29) 시가총액에 매일의 주가 등락률을 곱해 이어 붙인 추정치 (백만엔 → 화면은 십억엔).</li>
       <li>최근 3거래일: 마지막 거래일 종가 ÷ 3거래일 전 종가 − 1.</li>
       <li>자금흐름: 구간 ①9.25~10.8 ②10.9~10.23 ③10.26~11.2 ④11.4~최근 거래일.</li>
@@ -1118,8 +1102,8 @@
       made.lines.selectAll('text').remove();
       const rows = d.data.slice().sort((a, b) => a.date.localeCompare(b.date));
       const mk = (name, key) => ({ name, values: rows.map((r) => ({ date: r.date, y: +r[key] })) });
-      lineChart(el, made, [mk('62종목 닛케이식', 'nikkei_style_100'), mk('62종목 TOPIX식', 'topix_style_100'), mk('닛케이225', 'nikkei225_100')],
-        { label: '9.25를 100으로 맞춘 62종목 지수와 닛케이225의 일별 흐름', tipFmt: d3.format('.1f'), yFmt: d3.format('d') });
+      lineChart(el, made, [mk('닛케이225', 'nikkei225')],
+        { label: '9.25 이후 닛케이225 일별 종가', tipFmt: d3.format(',.2f'), yFmt: d3.format(',') });
     }
   });
 
@@ -2075,7 +2059,7 @@
   dash.draw('rp-stats', (box) => {
     box.replaceChildren(); const d = dash.data('day_stats'); const date = RP(); const r = d.status === 'ok' && d.data && date ? d.data.find((x) => x.date === date) : null; if (!r) return;
     const items = [['닛케이225 종가', d3.format(',.2f')(r.nk_close), (r.nk_pts > 0 ? '+' : '') + d3.format(',.2f')(r.nk_pts) + ' (' + fmtPct(r.nk_chg, true) + ')', r.nk_chg, 'nk_close'],
-      ['62종목 닛케이식', fmtPct(r.ns_chg, true), '전일 대비', r.ns_chg, 'ns_chg'], ['62종목 시총 가중', fmtPct(r.tp_chg, true), '전일 대비', r.tp_chg, 'tp_chg'], ['상승 · 하락', r.up + ' · ' + r.down, '62종목 중', null, 'up']];
+      ['상승 · 하락', r.up + ' · ' + r.down, '62종목 중', null, 'up']];
     for (const [lab, v, sub, sg, field] of items) { const c = document.createElement('div'); c.className = 'sj-stat'; const l = document.createElement('div'); l.className = 'sj-card-label'; l.textContent = lab;
       const val = document.createElement('div'); val.className = 'sj-stat-v'; val.textContent = v; if (sg != null && field !== 'nk_close') cls(val, sg);
       const m = document.createElement('div'); m.className = 'sj-muted'; m.textContent = sub; if (field === 'nk_close') cls(m, sg); c.append(l, val, m); box.append(c); }
@@ -2122,7 +2106,7 @@
     const sm = new Map(st.status === 'ok' && st.data ? st.data.map((r) => [r.date, r]) : []); const cur = RP();
     for (const r of d.data.slice().sort((a, b) => b.date.localeCompare(a.date))) {
       const s = sm.get(r.date) || {};
-      addRow(tb, r.date, [[dateLabel(r.date) + '(' + wd(r.date) + ')', 'l'], [r.title, 'l wrap'], [s.nk_chg == null ? '—' : fmtPct(s.nk_chg, true), '', s.nk_chg], [s.tp_chg == null ? '—' : fmtPct(s.tp_chg, true), '', s.tp_chg], [r.up, 'l wrap'], [r.down, 'l wrap']], 'sj-click' + (r.date === cur ? ' sj-on' : ''));
+      addRow(tb, r.date, [[dateLabel(r.date) + '(' + wd(r.date) + ')', 'l'], [r.title, 'l wrap'], [s.nk_chg == null ? '—' : fmtPct(s.nk_chg, true), '', s.nk_chg], [r.up, 'l wrap'], [r.down, 'l wrap']], 'sj-click' + (r.date === cur ? ' sj-on' : ''));
       tb.lastChild.addEventListener('click', () => { S.rp = r.date; redrawRp(); document.querySelectorAll('#h-report').forEach((h2) => h2.scrollIntoView({ behavior: 'smooth', block: 'start' })); });
     }
   });
@@ -2321,7 +2305,7 @@
     const d = lastDay(); const dayEl = document.getElementById('lv-day');
     if (!d || !d.points.length) return empty(box, '아직 장중 기록이 없습니다. 다음 장중(평일 9:00~)부터 10분마다 점이 쌓입니다.');
     if (dayEl) dayEl.textContent = '· ' + d.date.slice(5).replace('-', '.') + ' (점 ' + d.points.length + '개)';
-    const S = [['nk_pct', '닛케이225', '#c0392b'], ['ns_pct', '62종목(닛케이식)', '#2563eb'], ['tp_pct', '62종목(시총 가중)', '#16a34a']];
+    const S = [['nk_pct', '닛케이225', '#c0392b']];
     const pts = d.points.filter((p) => tmin(p.t) >= 540 && tmin(p.t) <= 960);
     const vals = pts.flatMap((p) => S.map(([k]) => p[k]).filter((v) => v != null)).concat([0]);
     const w = W(box), h = 260, m = { t: 14, r: 70, b: 26, l: 44 };
@@ -2389,8 +2373,7 @@
   const drawCards = () => {
     const cards = document.getElementById('lv-cards'); if (!cards || !LV) return; cards.replaceChildren();
     const nk = LV.nikkei || {};
-    [['닛케이225', nf(nk.price, 2), nk.chg_pct, (nk.time || '') + ' 기준(15분 지연)'], ['62종목 지수(닛케이식)', nf(LV.ns, 1), LV.ns_pct, '전일 종가 ' + LV.base_date.slice(5).replace('-', '.') + ' 대비'],
-      ['62종목 지수(시총 가중)', nf(LV.tp, 1), LV.tp_pct, '상승 ' + LV.up + ' · 하락 ' + LV.down], ['마지막 갱신', LV.updated_jst.slice(11), null, LV.updated_jst.slice(0, 10) + ' (한국·일본 같은 시각)']].forEach(([l, v, p, s]) => {
+    [['닛케이225', nf(nk.price, 2), nk.chg_pct, (nk.time || '') + ' 기준(15분 지연)'], ['62종목 상승·하락', LV.up + ' · ' + LV.down, null, '전일 종가 ' + LV.base_date.slice(5).replace('-', '.') + ' 대비'], ['마지막 갱신', LV.updated_jst.slice(11), null, LV.updated_jst.slice(0, 10) + ' (한국·일본 같은 시각)']].forEach(([l, v, p, s]) => {
       const c = el('div', 'sj-stat'); c.append(el('div', 'sj-card-label', l), el('div', 'sj-stat-v', v));
       if (p != null) { const d = el('div', null, sg(p)); cls(d, p); c.append(d); }
       c.append(el('div', 'sj-muted', s)); cards.append(c);

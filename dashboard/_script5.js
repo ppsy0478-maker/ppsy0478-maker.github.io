@@ -171,7 +171,7 @@
   dash.draw('rp-stats', (box) => {
     box.replaceChildren(); const d = dash.data('day_stats'); const date = RP(); const r = d.status === 'ok' && d.data && date ? d.data.find((x) => x.date === date) : null; if (!r) return;
     const items = [['닛케이225 종가', d3.format(',.2f')(r.nk_close), (r.nk_pts > 0 ? '+' : '') + d3.format(',.2f')(r.nk_pts) + ' (' + fmtPct(r.nk_chg, true) + ')', r.nk_chg, 'nk_close'],
-      ['62종목 닛케이식', fmtPct(r.ns_chg, true), '전일 대비', r.ns_chg, 'ns_chg'], ['62종목 시총 가중', fmtPct(r.tp_chg, true), '전일 대비', r.tp_chg, 'tp_chg'], ['상승 · 하락', r.up + ' · ' + r.down, '62종목 중', null, 'up']];
+      ['상승 · 하락', r.up + ' · ' + r.down, '62종목 중', null, 'up']];
     for (const [lab, v, sub, sg, field] of items) { const c = document.createElement('div'); c.className = 'sj-stat'; const l = document.createElement('div'); l.className = 'sj-card-label'; l.textContent = lab;
       const val = document.createElement('div'); val.className = 'sj-stat-v'; val.textContent = v; if (sg != null && field !== 'nk_close') cls(val, sg);
       const m = document.createElement('div'); m.className = 'sj-muted'; m.textContent = sub; if (field === 'nk_close') cls(m, sg); c.append(l, val, m); box.append(c); }
@@ -218,7 +218,7 @@
     const sm = new Map(st.status === 'ok' && st.data ? st.data.map((r) => [r.date, r]) : []); const cur = RP();
     for (const r of d.data.slice().sort((a, b) => b.date.localeCompare(a.date))) {
       const s = sm.get(r.date) || {};
-      addRow(tb, r.date, [[dateLabel(r.date) + '(' + wd(r.date) + ')', 'l'], [r.title, 'l wrap'], [s.nk_chg == null ? '—' : fmtPct(s.nk_chg, true), '', s.nk_chg], [s.tp_chg == null ? '—' : fmtPct(s.tp_chg, true), '', s.tp_chg], [r.up, 'l wrap'], [r.down, 'l wrap']], 'sj-click' + (r.date === cur ? ' sj-on' : ''));
+      addRow(tb, r.date, [[dateLabel(r.date) + '(' + wd(r.date) + ')', 'l'], [r.title, 'l wrap'], [s.nk_chg == null ? '—' : fmtPct(s.nk_chg, true), '', s.nk_chg], [r.up, 'l wrap'], [r.down, 'l wrap']], 'sj-click' + (r.date === cur ? ' sj-on' : ''));
       tb.lastChild.addEventListener('click', () => { S.rp = r.date; redrawRp(); document.querySelectorAll('#h-report').forEach((h2) => h2.scrollIntoView({ behavior: 'smooth', block: 'start' })); });
     }
   });

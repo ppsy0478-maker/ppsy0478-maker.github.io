@@ -24,7 +24,7 @@
     const d = lastDay(); const dayEl = document.getElementById('lv-day');
     if (!d || !d.points.length) return empty(box, '아직 장중 기록이 없습니다. 다음 장중(평일 9:00~)부터 10분마다 점이 쌓입니다.');
     if (dayEl) dayEl.textContent = '· ' + d.date.slice(5).replace('-', '.') + ' (점 ' + d.points.length + '개)';
-    const S = [['nk_pct', '닛케이225', '#c0392b'], ['ns_pct', '62종목(닛케이식)', '#2563eb'], ['tp_pct', '62종목(시총 가중)', '#16a34a']];
+    const S = [['nk_pct', '닛케이225', '#c0392b']];
     const pts = d.points.filter((p) => tmin(p.t) >= 540 && tmin(p.t) <= 960);
     const vals = pts.flatMap((p) => S.map(([k]) => p[k]).filter((v) => v != null)).concat([0]);
     const w = W(box), h = 260, m = { t: 14, r: 70, b: 26, l: 44 };
@@ -92,8 +92,7 @@
   const drawCards = () => {
     const cards = document.getElementById('lv-cards'); if (!cards || !LV) return; cards.replaceChildren();
     const nk = LV.nikkei || {};
-    [['닛케이225', nf(nk.price, 2), nk.chg_pct, (nk.time || '') + ' 기준(15분 지연)'], ['62종목 지수(닛케이식)', nf(LV.ns, 1), LV.ns_pct, '전일 종가 ' + LV.base_date.slice(5).replace('-', '.') + ' 대비'],
-      ['62종목 지수(시총 가중)', nf(LV.tp, 1), LV.tp_pct, '상승 ' + LV.up + ' · 하락 ' + LV.down], ['마지막 갱신', LV.updated_jst.slice(11), null, LV.updated_jst.slice(0, 10) + ' (한국·일본 같은 시각)']].forEach(([l, v, p, s]) => {
+    [['닛케이225', nf(nk.price, 2), nk.chg_pct, (nk.time || '') + ' 기준(15분 지연)'], ['62종목 상승·하락', LV.up + ' · ' + LV.down, null, '전일 종가 ' + LV.base_date.slice(5).replace('-', '.') + ' 대비'], ['마지막 갱신', LV.updated_jst.slice(11), null, LV.updated_jst.slice(0, 10) + ' (한국·일본 같은 시각)']].forEach(([l, v, p, s]) => {
       const c = el('div', 'sj-stat'); c.append(el('div', 'sj-card-label', l), el('div', 'sj-stat-v', v));
       if (p != null) { const d = el('div', null, sg(p)); cls(d, p); c.append(d); }
       c.append(el('div', 'sj-muted', s)); cards.append(c);
