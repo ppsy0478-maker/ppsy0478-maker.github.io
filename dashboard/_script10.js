@@ -500,8 +500,8 @@
   const HKEY = 'vtb-chat-v1'; let hist = [];
   try { hist = JSON.parse(localStorage.getItem(HKEY) || '[]').slice(-24); } catch (e) { hist = []; }
   const saveHist = () => { try { localStorage.setItem(HKEY, JSON.stringify(hist.slice(-24))); } catch (e) {} };
-  let chatApi = null, persona = '', personaStock = '';
-  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; chatApiReady = () => !!chatApi; persona = c && c.persona ? String(c.persona) : ''; personaStock = c && c.persona_stock ? String(c.persona_stock) : ''; }).catch(() => {});
+  let chatApi = null, persona = '', personaStock = '', exCasual = [], exStock = [];
+  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; chatApiReady = () => !!chatApi; persona = c && c.persona ? String(c.persona) : ''; personaStock = c && c.persona_stock ? String(c.persona_stock) : ''; exCasual = c && Array.isArray(c.examples_casual) ? c.examples_casual : []; exStock = c && Array.isArray(c.examples_stock) ? c.examples_stock : []; }).catch(() => {});
   function goTo(l) {
     const b = document.querySelector('.sj .sj-tab[data-go="' + (l.code ? 'detail' : l.tab) + '"]'); if (b) b.click();
     if (l.code) setTimeout(() => { const sel = document.querySelector('[data-draw="dt-select"]'); if (sel) { sel.value = l.code; sel.dispatchEvent(new Event('change')); } const h = document.getElementById('h-detail'); if (h) h.scrollIntoView({ block: 'start' }); }, 60);
@@ -534,9 +534,14 @@
   }
   const typing = (mood) => bubble('bot', '', { dots: true, mood });
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  function exampleBlock(casual) {
+    const pool = (casual ? exCasual : exStock).slice(); if (!pool.length) return '';
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    return '\n\n[말투 참고용 대화 예시 — 이런 말투·길이·표정 태그를 따라 하되 문장을 그대로 베끼지 말고, ○ 자리는 실제 자료의 숫자로 채운다]\n' + pool.slice(0, casual ? 8 : 3).map((e) => '사용자: ' + e.u + '\n레이코: ' + e.a).join('\n');
+  }
   async function askAI(q, casual) {
     const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 50000);
-    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', persona: (casual ? persona + bondNote() : personaStock + watchNote()) + MOOD_RULE, context: casual ? casualContext() : aiContext(q), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
+    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', persona: (casual ? persona + bondNote() : personaStock + watchNote()) + MOOD_RULE, context: (casual ? casualContext() : aiContext(q)) + exampleBlock(casual), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.answer) throw new Error(j.error || ('HTTP ' + r.status));
     return String(j.answer).trim();
