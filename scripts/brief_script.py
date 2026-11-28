@@ -54,9 +54,10 @@ def speak(text):
     t = re.sub(r'(\d[\d,]*(?:\.\d+)?)\s*%', lambda m: read_number(m[1]) + ' 퍼센트', t)
     t = re.sub(r'(\d[\d,]*(?:\.\d+)?)\s*배', lambda m: read_number(m[1]) + ' 배', t)
     t = re.sub(r'(\d[\d,]*(?:\.\d+)?)\s*엔', lambda m: read_number(m[1]) + ' 엔', t)
+    t = re.sub(r'(\d{1,2})\s*종(?!목)', lambda m: NAT.get(int(m[1]), num_ko(m[1])) + ' 종', t)
     t = re.sub(r'(\d[\d,]*)\s*(종목|거래일|주|건|명|곳|개)', lambda m: read_number(m[1]) + ' ' + m[2], t)
     t = re.sub(r'(?<![A-Za-z])\d[\d,]*(?:\.\d+)?', lambda m: read_number(m[0]), t)
-    t = re.sub(r'\bAI\b', '에이아이', t).replace('TOPIX', '토픽스').replace('SSD', '에스에스디').replace('FOMC', '에프오엠씨')
+    t = re.sub(r'\bAI\b', '에이아이', t).replace('TOPIX', '토픽스').replace('SSD', '에스에스디').replace('EUV', '이유브이').replace('NT배율', '엔티배율').replace('PER', '피이알').replace('FOMC', '에프오엠씨')
     t = t.replace('CPI', '씨피아이').replace('DAX', '닥스').replace('FTSE', '풋시').replace('IHI', '아이에이치아이').replace('JT', '제이티').replace('ENEOS', '에네오스').replace('MUFG', '엠유에프지')
     t = re.sub(r'\s+', ' ', t).strip()
     return t
@@ -72,6 +73,41 @@ def build_both():
     SPOKEN = False; d, disp = build()
     SPOKEN = True; _, sp = build()
     return d, disp, sp
+
+TYPE_RANK = {'실적': 0, 'M&A': 1, '애널리스트': 2, '업황': 3, '제휴': 4, '신제품': 5, '수급': 6, '정책': 7}
+
+def stock_news(d, limit=5):
+    """그날 62종목 뉴스 중 중요한 것 limit건 (같은 기사로 묶인 종목은 한 줄로)."""
+    pr = rows('prices')
+    dates = sorted({r['date'] for r in pr})
+    name = {r['code']: re.sub(r'\(.*?\)|㈜', '', r['name']) for r in pr}
+    chg = {}
+    if d in dates and dates.index(d) > 0:
+        prev = dates[dates.index(d) - 1]
+        p0 = {r['code']: float(r['price']) for r in pr if r['date'] == prev and r['price']}
+        for r in pr:
+            if r['date'] == d and r['price'] and p0.get(r['code']):
+                chg[r['code']] = (float(r['price']) / p0[r['code']] - 1) * 100
+    news = [r for r in rows('news') if r['date'][:10] == d and r['sentiment'] != '중립' and r['type'] in TYPE_RANK]
+    groups = {}
+    for r in news:
+        m = re.search(r'b=(\w+)', r['url'])
+        key = m[1] if m else r['code'] + r['headline']
+        groups.setdefault(key, []).append(r)
+    ranked = sorted(groups.values(), key=lambda g: (-(len({r['code'] for r in g}) * 10 + max(abs(chg.get(r['code'], 0)) for r in g)), TYPE_RANK[g[0]['type']], g[0]['datetime']))
+    out, used = [], set()
+    for g in ranked:
+        codes = [c for c in dict.fromkeys(r['code'] for r in g) if c not in used]
+        if not codes: continue
+        used.update(codes)
+        hs = [r['headline'] for r in g]
+        multi = [h for h in hs if re.search(r'동반|일제|\d사', h)]
+        head = min(multi if len(codes) > 1 and multi else hs, key=len)
+        moves = [name.get(c, c) + (' ' + f'{chg[c]:+.1f}'.replace('.0', '') + '%' if c in chg else '') for c in codes]
+        line = f"{', '.join(moves)}. {head.replace(' + ', ', ')}."
+        out.append(speak(line) if SPOKEN else line)
+        if len(out) >= limit: break
+    return out
 
 def build():
     reps = sorted(rows('market_reports'), key=lambda r: r['date'])
@@ -91,6 +127,10 @@ def build():
         for r in pick:
             first = re.split(r'(?<=다\.)\s*', r.get('summary', ''))[0]
             out.append(speak(r['title']) + '. ' + speak(first))
+    stock = stock_news(d)
+    if stock:
+        out.append('이어서 오늘의 종목 뉴스입니다.')
+        out += stock
     iv = sorted(rows('investor_flows'), key=lambda r: r['week_end'])
     if iv:
         v = round(float(iv[-1]['for_net']))
