@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281409">
+<html lang="ko" data-build="202611281417">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3131,7 +3131,7 @@
   const bondLv = () => { const n = bondN(); return n >= 120 ? 3 : n >= 50 ? 2 : n >= 15 ? 1 : 0; };
   let paintBond = () => {};
   const bondUp = () => { try { localStorage.setItem(BKEY, String(bondN() + 1)); } catch (e) {} paintBond(); };
-  const BOND_TXT = ['경계 단계: 새침하고 퉁명스러움을 강하게, 칭찬엔 크게 허둥댄다.', '조금 친해짐: 퉁명스럽지만 걱정하는 말이 자주 새어 나온다.', '꽤 친해짐: 츤데레가 약해지고 가끔 먼저 챙겨 주다가 부끄러워한다.', '아주 친함: 거의 다정하다. 가끔만 "착각하지 마세요"로 부끄러움을 감춘다.'];
+  const BOND_TXT = ['사귄 지 얼마 안 됨: 쑥스러워서 츤데레가 강하고, 좋아한다는 티를 들키면 크게 허둥댄다.', '조금 익숙해짐: 퉁명스럽지만 보고 싶었다·걱정했다는 본심이 자주 새어 나온다.', '꽤 깊어짐: 둘만 있을 땐 다정한 말을 먼저 하다가 부끄러워 얼버무린다.', '아주 깊어짐: 거의 다정한 여자친구. 가끔만 "회사에선 비밀이에요"라며 새침하게 군다.'];
   const bondNote = () => '\n[친밀도 ' + bondLv() + '/3] ' + BOND_TXT[bondLv()];
   const watchNote = () => { const W = watchStocks(); return W.length ? '\n[선생님 관심 종목] ' + W.map((x) => x.name).join(', ') + ' — 관련 있으면 먼저 언급한다.' : ''; };
   const MOOD_RULE = '\n[표정 규칙] 답변 맨 앞에 [표정:웃음] [표정:새침] [표정:놀람] [표정:걱정] [표정:부끄러움] [표정:뿌듯함] 중 내용에 가장 어울리는 하나를 붙인다. 태그는 한 번만.';
@@ -3217,7 +3217,7 @@
   const AV = Object.fromEntries(MOODS.map((m) => [m, 'img/avatar_' + m + '.webp']));
   const PT = Object.fromEntries(MOODS.map((m) => [m, 'img/portrait_' + m + '.webp']));
   const MOOD_KO = { '웃음': 'stock', '새침': 'casual', '놀람': 'surprised', '걱정': 'worried', '부끄러움': 'embarrassed', '뿌듯함': 'proud' };
-  const MOOD_STATUS = { stock: '친절한 주식 비서 모드', casual: '…흥, 수다 상대 해 드릴게요', surprised: '엣, 잠깐만요…!', worried: '선생님이 좀 걱정돼요', embarrassed: '그, 그런 거 아니에요…', proud: '이 정도는 기본이죠' };
+  const MOOD_STATUS = { stock: '친절한 주식 비서 모드', casual: '…둘만 있을 때만이에요', surprised: '엣, 잠깐만요…!', worried: '선생님이 좀 걱정돼요', embarrassed: '누가 들으면 어떡해요…', proud: '이 정도는 기본이죠' };
   const NAME = '쿠로사키 레이코', FAB_NAME = 'AI 비서';
   const css = document.createElement('style');
   css.textContent = `
@@ -3373,7 +3373,7 @@
   function exampleBlock(casual) {
     const pool = (casual ? exCasual : exStock).slice(); if (!pool.length) return '';
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-    return '\n\n[말투 참고용 대화 예시 — 이런 말투·길이·표정 태그를 따라 하되 문장을 그대로 베끼지 말고, ○ 자리는 실제 자료의 숫자로 채운다]\n' + pool.slice(0, casual ? 8 : 3).map((e) => '사용자: ' + e.u + '\n레이코: ' + e.a).join('\n');
+    return '\n\n[말투 참고용 대화 예시 — 이런 말투·길이·표정 태그를 따라 하되 문장을 그대로 베끼지 말고, ○ 자리는 실제 자료의 숫자로 채운다]\n' + pool.slice(0, casual ? 10 : 3).map((e) => '사용자: ' + e.u + '\n레이코: ' + e.a).join('\n');
   }
   async function askAI(q, casual) {
     const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 50000);
@@ -3415,7 +3415,7 @@
     const ch = a && b ? (+a.close / +b.close - 1) * 100 : 0;
     const lines = []; let mood = 'stock';
     const hi = hr < 11 ? '좋은 아침이에요' : hr < 18 ? '안녕하세요' : '오늘도 수고 많으셨어요';
-    if (dow === 0 || dow === 6) { mood = 'casual'; lines.push(['주말에도 차트 보세요? …뭐, 저도 마침 대기 중이었지만요.', '주말인데 또 오셨네요. 쉬, 쉬는 것도 업무예요!', '주말에도 와 주셨네요. …딱히 기다린 건 아니에요.', '주말에도 와 주셔서 …조금 기뻐요.'][lv]); }
+    if (dow === 0 || dow === 6) { mood = 'casual'; lines.push(['주말에도 차트 보세요? …뭐, 저도 마침 여기 있었지만요. 우연이에요.', '주말인데 또 오셨네요. …회사 아니니까 조금은 티 내도 되겠죠.', '주말에도 와 줬네요. …사실 기다렸어요. 조금.', '주말에도 와 줘서 기뻐요. 오늘은 비밀 안 지켜도 되는 날이에요.'][lv]); }
     else if (hr >= 23 || hr < 6) { mood = 'worried'; lines.push('이 시간까지 안 주무세요? 잠깐만 보고 쉬세요. 걱정돼서 하는 말이에요.'); }
     else lines.push('선생님, ' + hi + '.');
     if (a && b) {
@@ -3516,7 +3516,7 @@
     const W = watchStocks(), w = W.length ? W[Math.floor(Math.random() * W.length)] : null;
     const dyn = [
       up ? ['surprised', '어머, ' + up.name + ' ' + (up.d1 >= 0 ? '+' : '') + up.d1.toFixed(1) + '%… 오늘 제일 신났네요.'] : null,
-      dn && dn.d1 < -2 ? ['worried', dn.name + '는 ' + dn.d1.toFixed(1) + '%… 괜히 제가 다 신경 쓰이네요.'] : null,
+      dn && dn.d1 < -2 ? ['worried', dn.name + (((c) => c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28)(dn.name.charCodeAt(dn.name.length - 1)) ? '은 ' : '는 ') + dn.d1.toFixed(1) + '%… 괜히 제가 다 신경 쓰이네요.'] : null,
       w ? ['proud', '선생님 관심 종목 ' + w.name + ', 오늘 ' + (w.d1 >= 0 ? '+' : '') + w.d1.toFixed(1) + '%. …따, 딱히 계속 지켜본 건 아니에요.'] : null,
       hr < 9 ? ['casual', '아침부터 부지런하시네요. 저보다 먼저 출근하시면 곤란한데요.'] : null,
       hr >= 12 && hr < 14 ? ['worried', '점심은 드셨어요? 굶으면서 차트 보는 건 비효율이에요.'] : null,
@@ -3556,8 +3556,8 @@
   });
   function flushUnread() { if (!unread.length) return; unread.splice(0).forEach(([mood, text]) => { setMood(mood); bubble('bot', text, { mood, solo: true }); }); paintUnread(); }
   function soloTick() {
-    soloTimer = setTimeout(soloTick, (4 + Math.random() * 4) * 60e3);
-    if (!pc() || soloCount >= 10 || Date.now() - lastAct < 90e3 || root.classList.contains('talking')) return;
+    soloTimer = setTimeout(soloTick, (soloCount >= 10 ? 15 + Math.random() * 5 : 4 + Math.random() * 4) * 60e3);
+    if (!pc() || Date.now() - lastAct < 90e3 || root.classList.contains('talking')) return;
     if (document.hidden && unread.length >= 3) return;
     const [mood, text] = soloLine(); soloCount++;
     deliverSolo(mood, text);
