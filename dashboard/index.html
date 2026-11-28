@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281211">
+<html lang="ko" data-build="202611281250">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3113,11 +3113,13 @@
     const pair = { '을': ['을', '를'], '를': ['을', '를'], '과': ['과', '와'], '와': ['과', '와'], '이에요': ['이에요', '예요'], '예요': ['이에요', '예요'] }[j];
     return w + (bat ? pair[0] : pair[1]); }).replace(/,\s*,/g, ',').replace(/,\s*([.!?])/g, '$1').replace(/\s+,/g, ',');
   let meta = { ok: true, stock: null };
+  let chatApiReady = () => false;
   function answer(q) { return answer0(q).map(josa); }
   function answer0(q) {
-    meta = { ok: true, stock: null };
+    meta = { ok: true, stock: null, casual: false };
     const raw = String(q || '').trim();
     if (!raw) return ['무엇이 궁금하세요? 종목 이름이나 "오늘 제일 오른 종목" 같은 질문을 해 주세요.'];
+    if (chatApiReady() && !isFin(raw) && !/(뭐|뭘|무엇을?|어떤\s*걸)\s*(할\s*수|물어|알려)|도움말|사용법|기능/.test(raw)) { meta.ok = false; meta.casual = true; return ['(AI 연결이 안 돼서 지금은 주식 질문만 답할 수 있어요.)']; }
     if (/^(안녕|하이|hi|hello)/i.test(raw)) return ['안녕하세요! 종목, 수급, 금리, 일정, 배당 같은 걸 물어보시면 대시보드 자료에서 찾아 드릴게요.'];
     if (/고마워|감사|땡큐|thanks/i.test(raw)) return ['천만에요! 또 궁금한 거 있으면 불러 주세요.'];
     if (/(뭐|뭘|무엇을?|어떤\s*걸)\s*(할\s*수|물어|알려)|도움말|사용법|기능/.test(raw)) return ['이런 걸 물어볼 수 있어요.', '소니 어때, 미쓰비시중공업 목표주가, 토요타 배당, 키옥시아 왜 올랐어.', '오늘 제일 오른 종목, 9월 이후 많이 내린 종목, 외국인 수급, 미국 금리, 이번 주 일정, 배당 높은 종목.', '두 종목을 말하면 비교도 해 드려요. 예를 들어 소니랑 닌텐도 비교.'];
@@ -3174,6 +3176,13 @@
     });
     return out.join('\n').slice(0, 14000);
   }
+  const FIN = /주식|종목|주가|시장|증시|닛케이|지수|배당|목표|실적|결산|매출|이익|뉴스|수급|외국인|금리|국채|채권|공매도|신용|업종|섹터|반도체|방산|은행|상사|전망|업황|매수|매도|투자|수익|손실|포트폴리오|엔화|환율|달러|주주|52주|신고가|ETF|PER|PBR/i;
+  const isFin = (q) => FIN.test(q) || stocksIn(q).length > 0;
+  function casualContext() {
+    const S = snap(), rep0 = rowsOf('market_reports').slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop();
+    const now = new Date(Date.now() + 9 * 3600e3);
+    return '[지금] 한국 시각 ' + now.toISOString().slice(0, 16).replace('T', ' ') + ' (' + '일월화수목금토'[now.getUTCDay()] + '요일)\n[최근 시장 한 줄] ' + (rep0 ? String(rep0.lede || '').replace(/\s*¶\s*/g, ' ').slice(0, 400) : '') + '\n[최근 거래일] ' + S.L;
+  }
   window.__vtbContext = aiContext;
   window.__vtbScript = script;
   window.__vtbAnswer = answer;
@@ -3225,7 +3234,7 @@
     <div class="vtb-bar"><button class="main" type="button" data-a="play">▶ 브리핑</button><button type="button" data-a="pause">⏸</button><button type="button" data-a="stop">■</button>
       <select data-a="rate" aria-label="말 빠르기"><option value="0.9">느리게</option><option value="1.05" selected>보통</option><option value="1.25">빠르게</option></select>
       <select data-a="voice" aria-label="목소리"></select></div>
-    <div class="vtb-note">브리핑은 AI 음성 · 채팅은 대시보드 자료로 답하고, 어려운 질문은 AI가 답해요(틀릴 수 있음) · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
+    <div class="vtb-note">브리핑은 AI 음성 · 채팅은 대시보드 자료로 답하고, 어려운 질문·수다는 Google AI가 답해요(틀릴 수 있음). 대화는 이 브라우저에만 저장되고 AI로 전송되니 개인정보는 적지 마세요 · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
   </div>`;
   const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-stage'), sub = root.querySelector('.vtb-sub');
   const vsel = root.querySelector('[data-a="voice"]'), rsel = root.querySelector('[data-a="rate"]');
@@ -3286,9 +3295,11 @@
   let readOn = false; try { readOn = localStorage.getItem('vtb-read') === '1'; } catch (e) {}
   const paintRead = () => { readBtn.textContent = readOn ? '🔊' : '🔈'; readBtn.classList.toggle('on', readOn); };
   paintRead(); readBtn.onclick = () => { readOn = !readOn; paintRead(); try { localStorage.setItem('vtb-read', readOn ? '1' : '0'); } catch (e) {} if (!readOn && synth) { synth.cancel(); setTalk(false); } };
-  const hist = [];
+  const HKEY = 'vtb-chat-v1'; let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(HKEY) || '[]').slice(-24); } catch (e) { hist = []; }
+  const saveHist = () => { try { localStorage.setItem(HKEY, JSON.stringify(hist.slice(-24))); } catch (e) {} };
   let chatApi = null;
-  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; }).catch(() => {});
+  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; chatApiReady = () => !!chatApi; }).catch(() => {});
   function goTo(l) {
     const b = document.querySelector('.sj .sj-tab[data-go="' + (l.code ? 'detail' : l.tab) + '"]'); if (b) b.click();
     if (l.code) setTimeout(() => { const sel = document.querySelector('[data-draw="dt-select"]'); if (sel) { sel.value = l.code; sel.dispatchEvent(new Event('change')); } const h = document.getElementById('h-detail'); if (h) h.scrollIntoView({ block: 'start' }); }, 60);
@@ -3302,9 +3313,9 @@
     if (opt.note) { const sm = document.createElement('small'); sm.textContent = opt.note; m.append(sm); }
     log.append(m); while (log.children.length > 40) log.firstChild.remove(); log.scrollTop = log.scrollHeight; return m;
   }
-  async function askAI(q) {
+  async function askAI(q, casual) {
     const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 50000);
-    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, context: aiContext(q), history: hist.slice(-6) }) }).finally(() => clearTimeout(tm));
+    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', context: casual ? casualContext() : aiContext(q), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.answer) throw new Error(j.error || ('HTTP ' + r.status));
     return String(j.answer).trim();
@@ -3315,16 +3326,20 @@
     const lines = answer(q), links = linksFor(q);
     let text = lines.join('\n'), ai = false, note = '';
     if (!meta.ok && chatApi) {
-      const w = bubble('bot', '자료를 살펴보는 중이에요…', { wait: true });
-      try { text = await askAI(q); ai = true; note = 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.'; }
-      catch (e) { note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝나서 기본 검색으로 답했어요.' : 'AI 연결이 안 돼서 기본 검색으로 답했어요.'; }
+      const w = bubble('bot', meta.casual ? '음… 💭' : '자료를 살펴보는 중이에요…', { wait: true });
+      try { text = await askAI(q, meta.casual); ai = true; note = meta.casual ? '' : 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.'; }
+      catch (e) { if (meta.casual) text = '앗, 지금은 머리가 잘 안 돌아가요. 조금 있다가 다시 말 걸어 주세요!'; note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝났어요.' : 'AI 연결이 안 됐어요.'; }
       w.remove();
     }
-    bubble('bot', text, { ai, links, note });
-    hist.push({ role: 'user', text: q }, { role: 'model', text: text.slice(0, 600) }); while (hist.length > 12) hist.shift();
+    bubble('bot', text, { ai: ai && !meta.casual, links: meta.casual ? [] : links, note });
+    hist.push({ role: 'user', text: q }, { role: 'model', text: text.slice(0, 600) }); while (hist.length > 24) hist.shift(); saveHist();
     if (readOn) playLines(ai ? text.split(/(?<=[.!?。])\s+/).filter(Boolean) : lines);
   };
   window.__vtbAsk = ask;
+  if (hist.length) { hist.slice(-10).forEach((h) => bubble(h.role === 'user' ? 'me' : 'bot', h.text)); }
+  const clr = document.createElement('button'); clr.type = 'button'; clr.textContent = '대화 지우기';
+  clr.onclick = () => { hist = []; saveHist(); log.replaceChildren(); root.classList.remove('chat'); };
+  root.querySelector('.vtb-chips').append(clr);
   qf.onsubmit = (e) => { e.preventDefault(); ask(qi.value); qi.value = ''; };
   root.querySelectorAll('.vtb-chips button').forEach((b) => { b.onclick = () => ask(b.textContent); });
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
