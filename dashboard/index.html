@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281318">
+<html lang="ko" data-build="202611281319">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3331,7 +3331,7 @@
     let text = lines.join('\n'), ai = false, note = '';
     if (!meta.ok && chatApi) {
       const w = bubble('bot', meta.casual ? '그, 금방 답해 드릴게요… 💭' : '선생님, 자료 확인하고 있어요…', { wait: true });
-      try { text = await askAI(q, meta.casual); ai = true; note = meta.casual ? '' : 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.'; }
+      try { text = await askAI(q, meta.casual); ai = true; if (!meta.casual && personaStock.includes('선생님') && !/^선생님/.test(text)) text = '선생님, ' + text; note = meta.casual ? '' : 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.'; }
       catch (e) { if (meta.casual) text = '지, 지금은 업무가 밀려서요…! 조금 있다가 다시 말 걸어 주세요. …기다리고 있을게요.'; note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝났어요.' : 'AI 연결이 안 됐어요.'; }
       w.remove();
     }
