@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281332">
+<html lang="ko" data-build="202611281346">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3110,21 +3110,47 @@
     return w + (bat ? pair[0] : pair[1]); }).replace(/,\s*,/g, ',').replace(/,\s*([.!?])/g, '$1').replace(/\s+,/g, ',');
   let meta = { ok: true, stock: null };
   let chatApiReady = () => false;
+  /* 관심 종목 (이 브라우저에만 저장) */
+  const WKEY = 'vtb-watch-v1';
+  const getWatch = () => { try { return JSON.parse(localStorage.getItem(WKEY) || '[]'); } catch (e) { return []; } };
+  const setWatch = (a) => { try { localStorage.setItem(WKEY, JSON.stringify([...new Set(a)].slice(0, 15))); } catch (e) {} };
+  const watchStocks = () => { const S = snap(), w = getWatch(); return w.map((c) => S.list.find((x) => x.c === c)).filter(Boolean); };
+  function watchLines(raw) {
+    if (!/관심\s*종목|관심종목|찜/.test(raw)) return null;
+    const st = stocksIn(raw.replace(/관심\s*종목|관심종목/g, ' '));
+    if (st.length && /빼|삭제|제외|지워/.test(raw)) { setWatch(getWatch().filter((c) => !st.some((x) => x.c === c))); meta.mood = 'stock'; return [st.map((x) => x.name).join(', ') + '을 관심 종목에서 뺐어요.' + (getWatch().length ? ' 남은 관심 종목은 ' + watchStocks().map((x) => x.name).join(', ') + '이에요.' : '')]; }
+    if (st.length) { const add = /추가|넣어|더/.test(raw); setWatch((add ? getWatch() : []).concat(st.map((x) => x.c))); meta.mood = 'proud'; return ['선생님 관심 종목으로 ' + watchStocks().map((x) => x.name).join(', ') + '을 기억해 둘게요.', '앞으로 인사할 때랑 답할 때 먼저 챙겨 드릴게요.']; }
+    const W = watchStocks(); if (!W.length) return ['아직 관심 종목이 없어요. "관심 종목은 소니, IHI야"처럼 말해 주시면 기억해 둘게요.'];
+    const S = snap(); const best = W.slice().sort((a, b) => b.d1 - a.d1)[0];
+    meta.mood = best.d1 >= 2 ? 'proud' : W.every((x) => x.d1 < -1) ? 'worried' : 'stock';
+    return [md(S.L) + ' 선생님 관심 종목이에요.', W.map((x) => x.name + ' ' + pct(x.d1) + ' (9.25 이후 ' + pct(x.dt) + ')').join(', ') + '.'];
+  }
+  /* 친밀도 (대화 수, 이 브라우저에만 저장) */
+  const BKEY = 'vtb-bond-v1';
+  const bondN = () => { try { return +(localStorage.getItem(BKEY) || 0); } catch (e) { return 0; } };
+  const bondLv = () => { const n = bondN(); return n >= 120 ? 3 : n >= 50 ? 2 : n >= 15 ? 1 : 0; };
+  let paintBond = () => {};
+  const bondUp = () => { try { localStorage.setItem(BKEY, String(bondN() + 1)); } catch (e) {} paintBond(); };
+  const BOND_TXT = ['경계 단계: 새침하고 퉁명스러움을 강하게, 칭찬엔 크게 허둥댄다.', '조금 친해짐: 퉁명스럽지만 걱정하는 말이 자주 새어 나온다.', '꽤 친해짐: 츤데레가 약해지고 가끔 먼저 챙겨 주다가 부끄러워한다.', '아주 친함: 거의 다정하다. 가끔만 "착각하지 마세요"로 부끄러움을 감춘다.'];
+  const bondNote = () => '\n[친밀도 ' + bondLv() + '/3] ' + BOND_TXT[bondLv()];
+  const watchNote = () => { const W = watchStocks(); return W.length ? '\n[선생님 관심 종목] ' + W.map((x) => x.name).join(', ') + ' — 관련 있으면 먼저 언급한다.' : ''; };
+  const MOOD_RULE = '\n[표정 규칙] 답변 맨 앞에 [표정:웃음] [표정:새침] [표정:놀람] [표정:걱정] [표정:부끄러움] [표정:뿌듯함] 중 내용에 가장 어울리는 하나를 붙인다. 태그는 한 번만.';
   function answer(q) { return answer0(q).map(josa); }
   function answer0(q) {
-    meta = { ok: true, stock: null, casual: false };
+    meta = { ok: true, stock: null, casual: false, mood: null };
     const raw = String(q || '').trim();
+    const wl = watchLines(raw); if (wl) return wl;
     if (!raw) return ['무엇이 궁금하세요? 종목 이름이나 "오늘 제일 오른 종목" 같은 질문을 해 주세요.'];
     if (!chatApiReady() && /^(안녕|하이|hi|hello)/i.test(raw)) return ['안녕하세요! 종목, 수급, 금리, 일정, 배당 같은 걸 물어보시면 대시보드 자료에서 찾아 드릴게요.'];
     if (!chatApiReady() && /고마워|감사|땡큐|thanks/i.test(raw)) return ['천만에요! 또 궁금한 거 있으면 불러 주세요.'];
-    if (/(뭐|뭘|무엇을?|어떤\s*걸)\s*(할\s*수|물어|알려)|도움말|사용법|기능/.test(raw)) return ['이런 걸 물어볼 수 있어요.', '소니 어때, 미쓰비시중공업 목표주가, 토요타 배당, 키옥시아 왜 올랐어.', '오늘 제일 오른 종목, 9월 이후 많이 내린 종목, 외국인 수급, 미국 금리, 이번 주 일정, 배당 높은 종목.', '두 종목을 말하면 비교도 해 드려요. 예를 들어 소니랑 닌텐도 비교.'];
+    if (/(뭐|뭘|무엇을?|어떤\s*걸)\s*(할\s*수|물어|알려)|도움말|사용법|기능/.test(raw)) { meta.mood = 'proud'; return ['이런 걸 물어볼 수 있어요.', '관심 종목도 기억해요. "관심 종목은 소니, IHI야"라고 말해 보세요.', '소니 어때, 미쓰비시중공업 목표주가, 토요타 배당, 키옥시아 왜 올랐어.', '오늘 제일 오른 종목, 9월 이후 많이 내린 종목, 외국인 수급, 미국 금리, 이번 주 일정, 배당 높은 종목.', '두 종목을 말하면 비교도 해 드려요. 예를 들어 소니랑 닌텐도 비교.']; }
     let st = stocksIn(raw);
     const follow = !st.length && ctx && /그럼|거기|그\s*종목|걔|그거|이건|여기|그\s*회사|그\s*주식|얘/.test(raw);
     if (follow) st = [ctx];
     if (st.length >= 2 && /비교|vs|랑|하고|와|과|중에|어느/i.test(raw)) { ctx = st[0]; meta.stock = st[0]; meta.stock2 = st[1]; if (/왜|어떻게|생각|어느\s*게|뭐가\s*나|추천|좋아|나아/.test(raw)) meta.ok = false; return compareLines(st[0], st[1]); }
-    if (st.length) { const x = st[0]; ctx = x; meta.stock = x;
+    if (st.length) { const x = st[0]; ctx = x; meta.stock = x; meta.mood = x.d1 >= 3 ? 'proud' : x.d1 <= -3 ? 'worried' : 'stock';
       if (raw.length > 18 && !/목표|적정|배당|실적|결산|매출|이익|뉴스|왜|이유|52주|신고가|신용|공매도|게시판|분위기|주주|전망|업황|어때|알려|정보/.test(raw)) meta.ok = false; const a = aspectLines(x, raw); if (a) return a.filter(Boolean); const S = findStock(x.c); return S ? stockLines(S) : [x.name + ' 자료를 찾지 못했어요.']; }
-    const m = (chatApiReady() && !isFin(raw)) ? null : marketLines(raw); if (m && m.length) { if (raw.length > 22 && /왜|어떻게|생각|전망|괜찮|추천|해야|할까|일까|이유/.test(raw)) meta.ok = false; return m.filter(Boolean); }
+    const m = (chatApiReady() && !isFin(raw)) ? null : marketLines(raw); if (m && m.length) { meta.mood = /내린|하락|약세|급락|빠진|떨어|공매도/.test(raw) ? 'worried' : /오른|상승|강세|급등|배당|목표/.test(raw) ? 'proud' : 'stock'; if (raw.length > 22 && /왜|어떻게|생각|전망|괜찮|추천|해야|할까|일까|이유/.test(raw)) meta.ok = false; return m.filter(Boolean); }
     meta.ok = false;
     if (chatApiReady() && !isFin(raw)) { meta.casual = true; return ['(AI 연결이 안 돼서 지금은 주식 질문만 답할 수 있어요.)']; }
     const clean = raw.replace(/[?？.!]+\s*$/, '').replace(/(에 대해|에대해)?\s*(알려\s*줘|알려줄래|어때|어때요|브리핑|찾아\s*줘|검색|해\s*줘|좀)\s*[?？.!]*$/g, '').replace(/(은|는|이|가)$/, '').trim();
@@ -3159,6 +3185,7 @@
     const nm = new Map(S.list.map((x) => [x.c, x.name]));
     out.push('[최근 종목 뉴스] ' + sn.map((r) => String(r.date).slice(5, 10) + ' ' + (nm.get(String(r.code)) || r.code) + ': ' + r.headline).join(' | '));
     const st = stocksIn(q); if (!st.length && ctx && /그|거기|걔|얘|이\s*종목/.test(q)) st.push(ctx);
+    if (/관심|내\s*종목|내\s*주식|보유/.test(q)) watchStocks().forEach((x) => { if (!st.some((y) => y.c === x.c)) st.push(x); });
     const THEME = [[/방산|방위|군수/, ['7011', '7012', '7013']], [/해운|선박/, ['9101', '9104']], [/메가뱅크|은행주/, ['8306', '8316', '8411']], [/종합상사|상사주/, ['8058', '8001', '8031', '8053', '8002']], [/게임|엔터|애니/, ['7974', '6758', '3659', '7832', '3635', '9468', '4816']], [/보험/, ['8766', '8725', '8750']], [/철강/, ['5401', '5406']], [/식품|음식료/, ['2802', '2587', '2897', '2282', '2002', '2229', '2602']]];
     THEME.forEach(([re, codes]) => { if (re.test(q)) codes.forEach((c) => { const x = S.list.find((y) => y.c === c); if (x && !st.some((y) => y.c === c)) st.push(x); }); });
     S.list.forEach((x) => { const sec = String(x.sector || ''); sec.split(/[·\s/]+/).filter((w) => w.length >= 2).forEach((w) => { if (q.includes(w) && !st.some((y) => y.c === x.c)) st.push(x); }); });
@@ -3186,8 +3213,11 @@
   window.__vtbScript = script;
   window.__vtbAnswer = answer;
   /* ---------- 화면 (메신저형: 위쪽 프로필 + 말풍선) ---------- */
-  const AV = { stock: 'img/avatar_stock.webp', casual: 'img/avatar_casual.webp' };
-  const PT = { stock: 'img/portrait_stock.webp', casual: 'img/portrait_casual.webp' };
+  const MOODS = ['stock', 'casual', 'surprised', 'worried', 'embarrassed', 'proud'];
+  const AV = Object.fromEntries(MOODS.map((m) => [m, 'img/avatar_' + m + '.webp']));
+  const PT = Object.fromEntries(MOODS.map((m) => [m, 'img/portrait_' + m + '.webp']));
+  const MOOD_KO = { '웃음': 'stock', '새침': 'casual', '놀람': 'surprised', '걱정': 'worried', '부끄러움': 'embarrassed', '뿌듯함': 'proud' };
+  const MOOD_STATUS = { stock: '친절한 주식 비서 모드', casual: '…흥, 수다 상대 해 드릴게요', surprised: '엣, 잠깐만요…!', worried: '선생님이 좀 걱정돼요', embarrassed: '그, 그런 거 아니에요…', proud: '이 정도는 기본이죠' };
   const NAME = 'AI 비서';
   const css = document.createElement('style');
   css.textContent = `
@@ -3231,13 +3261,23 @@
   .vtb-bar button{font:inherit;font-size:13.5px;padding:6px 10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
   .vtb-bar button.main{background:#c0392b;color:#fff;border-color:#c0392b;font-weight:700}
   .vtb-bar select{font:inherit;font-size:12.5px;padding:4px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);max-width:120px}
-  .vtb-note{font-size:11px;color:var(--color-fg-muted);padding:0 12px 8px}`;
+  .vtb-note{font-size:11px;color:var(--color-fg-muted);padding:0 12px 8px}
+  .vtb-head b i{font-style:normal;font-size:12px;font-weight:400;margin-left:4px;letter-spacing:1px;color:#ffb3c1}
+  .vtb-dots span{display:inline-block;width:6px;height:6px;margin:0 2px;border-radius:50%;background:var(--color-fg-muted);animation:vtbdot 1s infinite}
+  .vtb-dots span:nth-child(2){animation-delay:.15s}.vtb-dots span:nth-child(3){animation-delay:.3s}
+  @keyframes vtbdot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+  .vtb-m .sg{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .vtb-m .sg button{font:inherit;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg);cursor:pointer}
+  .vtb-m .spark{display:block;margin-top:6px}.vtb-m .spark small{display:block;margin:0;font-size:11px;color:var(--color-fg-muted)}
+  .vtb-balloon{position:absolute;right:0;bottom:calc(100% + 10px);width:250px;display:flex;gap:8px;align-items:flex-start;padding:9px 10px;border-radius:12px;background:var(--color-panel);border:1px solid var(--color-border-line);box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:13.5px;line-height:1.5;cursor:pointer;animation:vtbpop .25s ease-out}
+  .vtb-balloon img{width:40px;height:40px;border-radius:40%;object-fit:cover;flex:none}
+  @keyframes vtbpop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}`;
   document.head.append(css);
   const root = document.createElement('div'); root.className = 'vtb';
   root.innerHTML = `<button class="vtb-fab" type="button"><img src="${AV.stock}" alt="">${NAME}</button>
   <div class="vtb-box" hidden>
     <button class="vtb-x" type="button" aria-label="닫기">✕</button>
-    <div class="vtb-head"><img class="pt on" data-m="stock" src="${PT.stock}" alt="${NAME}"><img class="pt" data-m="casual" src="${PT.casual}" alt=""><div class="cap"><b>${NAME}</b><span data-a="status">주식 얘기도, 수다도 OK</span></div></div>
+    <div class="vtb-head">${MOODS.map((m, i) => '<img class="pt' + (i ? '' : ' on') + '" data-m="' + m + '" src="' + PT[m] + '" alt="' + (i ? '' : NAME) + '"' + (i > 1 ? ' loading="lazy"' : '') + '>').join('')}<div class="cap"><b>${NAME} <i data-a="bond"></i></b><span data-a="status">주식 얘기도, 수다도 OK</span></div></div>
     <div class="vtb-sub"></div>
     <div class="vtb-log" aria-live="polite"><div class="vtb-hello">▶ 브리핑을 누르면 오늘 시장을 읽어 드려요.<br>아래에 궁금한 걸 물어보세요.</div></div>
     <form class="vtb-q"><input type="search" placeholder="예: 소니 목표주가, 오늘 제일 오른 종목" aria-label="메시지 입력"><button type="submit" aria-label="보내기">➤</button><button type="button" data-a="mic" aria-label="말로 묻기">🎤</button></form>
@@ -3249,7 +3289,7 @@
   </div>`;
   const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-head'), sub = root.querySelector('.vtb-sub');
   const statusEl = root.querySelector('[data-a="status"]');
-  const setMood = (m) => { m = m === 'casual' ? 'casual' : 'stock'; root.querySelectorAll('.vtb-head .pt').forEach((im) => im.classList.toggle('on', im.dataset.m === m)); statusEl.textContent = m === 'casual' ? '…흥, 수다 상대 해 드릴게요' : '친절한 주식 비서 모드'; };
+  const setMood = (m) => { m = MOODS.includes(m) ? m : 'stock'; root.querySelectorAll('.vtb-head .pt').forEach((im) => im.classList.toggle('on', im.dataset.m === m)); statusEl.textContent = MOOD_STATUS[m]; };
   const vsel = root.querySelector('[data-a="voice"]'), rsel = root.querySelector('[data-a="rate"]');
   const show = () => { if (!pc()) { root.hidden = true; return; } root.hidden = false; };
   document.body.append(root); show(); window.addEventListener('resize', show);
@@ -3299,41 +3339,116 @@
     const b = document.querySelector('.sj .sj-tab[data-go="' + (l.code ? 'detail' : l.tab) + '"]'); if (b) b.click();
     if (l.code) setTimeout(() => { const sel = document.querySelector('[data-draw="dt-select"]'); if (sel) { sel.value = l.code; sel.dispatchEvent(new Event('change')); } const h = document.getElementById('h-detail'); if (h) h.scrollIntoView({ block: 'start' }); }, 60);
   }
+  function sparkFor(code) {
+    const P = rowsOf('prices').filter((r) => String(r.code) === String(code)).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    if (P.length < 3) return null;
+    const v = P.map((r) => +r.price), lo = Math.min(...v), hi = Math.max(...v), W = 220, H = 44;
+    const pts = v.map((y, i) => (i / (v.length - 1) * W).toFixed(1) + ',' + (H - 3 - (y - lo) / (hi - lo || 1) * (H - 6)).toFixed(1)).join(' ');
+    const ch = (v[v.length - 1] / v[0] - 1) * 100, col = ch >= 0 ? '#c0392b' : '#2563eb';
+    const box0 = document.createElement('div'); box0.className = 'spark';
+    box0.innerHTML = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="9월 25일 이후 주가 흐름"><polyline fill="none" stroke="' + col + '" stroke-width="2" stroke-linejoin="round" points="' + pts + '"/></svg><small>9.25 이후 ' + (ch >= 0 ? '+' : '') + ch.toFixed(1) + '% · 최저 ' + lo.toLocaleString('ko-KR') + ' / 최고 ' + hi.toLocaleString('ko-KR') + '엔</small>';
+    return box0;
+  }
   function bubble(kind, text, opt = {}) {
     const hello = log.querySelector('.vtb-hello'); if (hello) hello.remove();
     const m = document.createElement('div'); m.className = 'vtb-m ' + kind + (opt.wait ? ' wait' : '');
     if (opt.ai) { const b = document.createElement('span'); b.className = 'ai'; b.textContent = 'AI'; m.append(b); }
-    m.append(document.createTextNode(text));
+    if (opt.dots) { const d = document.createElement('span'); d.className = 'vtb-dots'; d.innerHTML = '<span></span><span></span><span></span>'; m.append(d); }
+    const tn = document.createTextNode(opt.type ? '' : text); m.append(tn);
+    if (opt.spark) { const sp = sparkFor(opt.spark); if (sp) m.append(sp); }
+    if (opt.suggest && opt.suggest.length) { const sg = document.createElement('div'); sg.className = 'sg'; opt.suggest.forEach((q) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = q; b.onclick = () => ask(q); sg.append(b); }); m.append(sg); }
     if (opt.links && opt.links.length) { const lk = document.createElement('div'); lk.className = 'lk'; opt.links.forEach((l) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = l.label; b.onclick = () => goTo(l); lk.append(b); }); m.append(lk); }
     if (opt.note) { const sm = document.createElement('small'); sm.textContent = opt.note; m.append(sm); }
     let el = m;
     if (kind === 'bot') { el = document.createElement('div'); el.className = 'vtb-row'; const im = document.createElement('img'); im.src = AV[opt.mood] || AV.stock; im.alt = ''; const col = document.createElement('div'); const who = document.createElement('div'); who.className = 'who'; who.textContent = NAME; col.append(who, m); el.append(im, col); }
-    log.append(el); while (log.children.length > 40) log.firstChild.remove(); log.scrollTop = log.scrollHeight; return el;
+    log.append(el); while (log.children.length > 40) log.firstChild.remove(); log.scrollTop = log.scrollHeight;
+    if (opt.type && text) { const step = Math.max(1, Math.ceil(text.length / 60)); let i = 0; const tick = () => { i = Math.min(text.length, i + step); tn.nodeValue = text.slice(0, i); log.scrollTop = log.scrollHeight; if (i < text.length) setTimeout(tick, 22); }; tick(); }
+    return el;
   }
+  const typing = (mood) => bubble('bot', '', { dots: true, mood });
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   async function askAI(q, casual) {
     const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 50000);
-    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', persona: casual ? persona : personaStock, context: casual ? casualContext() : aiContext(q), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
+    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', persona: (casual ? persona + bondNote() : personaStock + watchNote()) + MOOD_RULE, context: casual ? casualContext() : aiContext(q), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.answer) throw new Error(j.error || ('HTTP ' + r.status));
     return String(j.answer).trim();
   }
   const ask = async (q) => {
     q = String(q || '').trim(); if (!q) return;
-    bubble('me', q);
+    bubble('me', q); bondUp();
     const lines = answer(q), links = linksFor(q);
-    let text = lines.join('\n'), ai = false, note = '';
+    let text = lines.join('\n'), ai = false, note = '', mood = meta.mood || (meta.casual ? 'casual' : 'stock');
     if (!meta.ok && chatApi) {
       setMood(meta.casual ? 'casual' : 'stock');
-      const w = bubble('bot', meta.casual ? '그, 금방 답해 드릴게요… 💭' : '선생님, 자료 확인하고 있어요…', { wait: true, mood: meta.casual ? 'casual' : 'stock' });
-      try { text = await askAI(q, meta.casual); ai = true; if (!meta.casual && personaStock.includes('선생님') && !/^선생님/.test(text)) text = '선생님, ' + text; note = meta.casual ? '' : 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.'; }
-      catch (e) { if (meta.casual) text = '지, 지금은 업무가 밀려서요…! 조금 있다가 다시 말 걸어 주세요. …기다리고 있을게요.'; note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝났어요.' : 'AI 연결이 안 됐어요.'; }
+      const w = typing(meta.casual ? 'casual' : 'stock');
+      try {
+        text = await askAI(q, meta.casual); ai = true;
+        const tag = text.match(/^\s*\[\s*표정\s*[:：]\s*([^\]\s]+)\s*\]\s*/); mood = meta.casual ? 'casual' : 'stock';
+        if (tag) { text = text.slice(tag[0].length); if (MOOD_KO[tag[1]]) mood = MOOD_KO[tag[1]]; }
+        text = text.replace(/\[\s*표정\s*[:：][^\]]*\]\s*/g, '');
+        if (!meta.casual && personaStock.includes('선생님') && !/^선생님/.test(text)) text = '선생님, ' + text;
+        note = meta.casual ? '' : 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.';
+      } catch (e) { if (meta.casual) { text = '지, 지금은 업무가 밀려서요…! 조금 있다가 다시 말 걸어 주세요. …기다리고 있을게요.'; mood = 'embarrassed'; } note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝났어요.' : 'AI 연결이 안 됐어요.'; }
       w.remove();
-    }
-    const mood = meta.casual ? 'casual' : 'stock'; setMood(mood);
-    bubble('bot', text, { ai: ai && !meta.casual, links: meta.casual ? [] : links, note, mood });
+    } else { const w = typing(mood); await sleep(450); w.remove(); }
+    setMood(mood);
+    bubble('bot', text, { ai: ai && !meta.casual, links: meta.casual ? [] : links, note, mood, type: true, spark: !meta.casual && meta.stock ? meta.stock.c : null });
     hist.push({ role: 'user', text: q }, { role: 'model', text: text.slice(0, 600), mood }); while (hist.length > 24) hist.shift(); saveHist();
   };
   window.__vtbAsk = ask;
+  const bondEl = root.querySelector('[data-a="bond"]');
+  paintBond = () => { const lv = bondLv(); bondEl.textContent = '♥'.repeat(lv + 1) + '♡'.repeat(3 - lv); bondEl.title = '친밀도 ' + lv + '/3 (대화 ' + bondN() + '번)'; };
+  paintBond();
+  function greeting() {
+    const now = new Date(Date.now() + 9 * 3600e3), hr = now.getUTCHours(), dow = now.getUTCDay(), lv = bondLv();
+    const nd = rowsOf('nikkei_daily').slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const a = nd[nd.length - 1], b = nd[nd.length - 2];
+    const ch = a && b ? (+a.close / +b.close - 1) * 100 : 0;
+    const lines = []; let mood = 'stock';
+    const hi = hr < 11 ? '좋은 아침이에요' : hr < 18 ? '안녕하세요' : '오늘도 수고 많으셨어요';
+    if (dow === 0 || dow === 6) { mood = 'casual'; lines.push(['주말에도 차트 보세요? …뭐, 저도 마침 대기 중이었지만요.', '주말인데 또 오셨네요. 쉬, 쉬는 것도 업무예요!', '주말에도 와 주셨네요. …딱히 기다린 건 아니에요.', '주말에도 와 주셔서 …조금 기뻐요.'][lv]); }
+    else if (hr >= 23 || hr < 6) { mood = 'worried'; lines.push('이 시간까지 안 주무세요? 잠깐만 보고 쉬세요. 걱정돼서 하는 말이에요.'); }
+    else lines.push('선생님, ' + hi + '.');
+    if (a && b) {
+      const s = 'm/d'.replace('m', +String(a.date).slice(5, 7)).replace('d', +String(a.date).slice(8, 10));
+      if (ch >= 1.5) { if (mood === 'stock') mood = 'proud'; lines.push(s + ' 닛케이는 ' + (+a.close).toLocaleString('ko-KR', { maximumFractionDigits: 0 }) + '엔, +' + ch.toFixed(1) + '%로 크게 올랐어요.'); }
+      else if (ch <= -1.5) { mood = 'worried'; lines.push(s + ' 닛케이는 ' + ch.toFixed(1) + '%로 많이 내렸어요. …오늘은 좀 힘든 날이었죠.'); }
+      else lines.push(s + ' 닛케이는 ' + (ch >= 0 ? '+' : '') + ch.toFixed(1) + '%로 마감했어요.');
+    }
+    const W = watchStocks();
+    if (W.length) { const t = W.slice().sort((x, y) => Math.abs(y.d1) - Math.abs(x.d1))[0]; lines.push('관심 종목 중에선 ' + t.name + '가 ' + (t.d1 >= 0 ? '+' : '') + t.d1.toFixed(1) + '%로 제일 많이 움직였어요.'); if (Math.abs(t.d1) >= 5) mood = 'surprised'; }
+    return { text: lines.join(' '), mood, suggest: W.length ? ['내 관심 종목 어때?', '오늘 제일 오른 종목'] : ['오늘 제일 오른 종목', '관심 종목 정하는 법'] };
+  }
+  let greeted = false;
+  async function greet() {
+    if (greeted) return; greeted = true;
+    for (let i = 0; i < 20 && !rowsOf('nikkei_daily').length; i++) await sleep(250);
+    const g = greeting(); setMood(g.mood);
+    const w = typing(g.mood); await sleep(700); w.remove();
+    bubble('bot', g.text, { mood: g.mood, type: true, suggest: g.suggest.map((x) => x === '관심 종목 정하는 법' ? '관심 종목은 소니, IHI야' : x) });
+  }
+  /* 탭을 열면 한마디 (탭마다 하루 한 번) */
+  const TAB_TALK = { dividends: ['배당 보세요? 배당수익률 높은 종목부터 정리해 드릴까요?', '배당 높은 종목'], targets: ['목표주가는 애널리스트 의견이라 참고용이에요. 여유가 큰 종목 볼까요?', '목표주가 여유 큰 종목'],
+    investors: ['외국인이 사는지 파는지 궁금하시죠?', '외국인 수급'], calendar: ['다가오는 일정 짚어 드릴까요?', '이번 주 일정'], credit: ['공매도 비율도 같이 볼까요?', '공매도'],
+    ust: ['미국 금리가 일본 증시에도 영향이 커요. 요약해 드릴까요?', '미국 금리'], news: ['오늘 시장 뉴스 제목만 빠르게 읽어 드릴까요?', '오늘 시장 뉴스'], reports: ['오늘 시장은 ▶ 브리핑으로 들으셔도 돼요. 아니면 요약해 드릴까요?', '오늘 시장 어땠어'] };
+  const TKEY = 'vtb-tabseen-v1';
+  let balloon = null;
+  function showBalloon(text, q) {
+    if (balloon) balloon.remove();
+    balloon = document.createElement('div'); balloon.className = 'vtb-balloon';
+    balloon.innerHTML = '<img src="' + AV.stock + '" alt="">'; const sp = document.createElement('span'); sp.textContent = text; balloon.append(sp);
+    balloon.onclick = () => { balloon.remove(); balloon = null; fab.click(); if (q) setTimeout(() => ask(q), 300); };
+    root.append(balloon); const me = balloon; setTimeout(() => { if (balloon === me) { me.remove(); balloon = null; } }, 8000);
+  }
+  document.querySelectorAll('.sj .sj-tab').forEach((t) => t.addEventListener('click', () => {
+    const id = t.dataset.go, tk = TAB_TALK[id]; if (!tk || !pc()) return;
+    const today0 = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+    let seen = {}; try { seen = JSON.parse(localStorage.getItem(TKEY) || '{}'); } catch (e) {}
+    if (seen[id] === today0) return; seen[id] = today0; try { localStorage.setItem(TKEY, JSON.stringify(seen)); } catch (e) {}
+    if (!box.hidden) { setMood('stock'); bubble('bot', tk[0], { mood: 'stock', type: true, suggest: [tk[1]] }); }
+    else showBalloon(tk[0], tk[1]);
+  }));
   if (hist.length) { hist.slice(-10).forEach((h) => bubble(h.role === 'user' ? 'me' : 'bot', h.text, { mood: h.mood })); }
   const clr = document.createElement('button'); clr.type = 'button'; clr.textContent = '대화 지우기';
   clr.onclick = () => { hist = []; saveHist(); log.replaceChildren(); setMood('stock'); };
@@ -3384,7 +3499,7 @@
   };
   root.querySelector('[data-a="pause"]').onclick = () => { if (audioEl && !audioEl.paused) { audioEl.pause(); return; } if (synth && synth.speaking) { synth.pause(); setTalk(false); } };
   root.querySelector('[data-a="stop"]').onclick = () => { stopAudio(); if (synth) synth.cancel(); queue = []; setTalk(false); sub.textContent = '▶ 를 누르면 오늘 시장을 브리핑해 드려요.'; root.classList.remove('brief'); };
-  fab.onclick = () => { fab.hidden = true; box.hidden = false; initModel(); };
+  fab.onclick = () => { fab.hidden = true; box.hidden = false; if (balloon) { balloon.remove(); balloon = null; } greet(); };
   root.querySelector('.vtb-x').onclick = (e) => { e.stopPropagation(); stopAudio(); if (synth) synth.cancel(); setTalk(false); box.hidden = true; fab.hidden = false; };
 })();
 
