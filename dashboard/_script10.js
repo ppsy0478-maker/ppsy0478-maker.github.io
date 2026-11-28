@@ -326,8 +326,11 @@
     const sn = rowsOf('news').slice().sort((a, b) => String(b.datetime).localeCompare(String(a.datetime))).slice(0, 15);
     const nm = new Map(S.list.map((x) => [x.c, x.name]));
     out.push('[최근 종목 뉴스] ' + sn.map((r) => String(r.date).slice(5, 10) + ' ' + (nm.get(String(r.code)) || r.code) + ': ' + r.headline).join(' | '));
-    const st = stocksIn(q); if (!st.length && ctx) st.push(ctx);
-    st.slice(0, 3).forEach((x) => {
+    const st = stocksIn(q); if (!st.length && ctx && /그|거기|걔|얘|이\s*종목/.test(q)) st.push(ctx);
+    const THEME = [[/방산|방위|군수/, ['7011', '7012', '7013']], [/해운|선박/, ['9101', '9104']], [/메가뱅크|은행주/, ['8306', '8316', '8411']], [/종합상사|상사주/, ['8058', '8001', '8031', '8053', '8002']], [/게임|엔터|애니/, ['7974', '6758', '3659', '7832', '3635', '9468', '4816']], [/보험/, ['8766', '8725', '8750']], [/철강/, ['5401', '5406']], [/식품|음식료/, ['2802', '2587', '2897', '2282', '2002', '2229', '2602']]];
+    THEME.forEach(([re, codes]) => { if (re.test(q)) codes.forEach((c) => { const x = S.list.find((y) => y.c === c); if (x && !st.some((y) => y.c === c)) st.push(x); }); });
+    S.list.forEach((x) => { const sec = String(x.sector || ''); sec.split(/[·\s/]+/).filter((w) => w.length >= 2).forEach((w) => { if (q.includes(w) && !st.some((y) => y.c === x.c)) st.push(x); }); });
+    st.slice(0, 6).forEach((x) => {
       const c = x.c, info = [];
       const t = rowsOf('targets').find((y) => String(y.code) === c); if (t && t.target) info.push('평균 목표주가 ' + t.target + '엔(' + (t.rating_label || '') + ', ' + (t.analysts || '?') + '명' + (t.flag ? ', 분할 미반영 가능' : '') + '), PBR ' + t.pbr + ' PER(예) ' + t.per_fc);
       const v = rowsOf('dividends').find((y) => String(y.code) === c); if (v) info.push('예상배당 ' + v.dps_fc + '엔 수익률 ' + v.yield_pct + '% 성향 ' + v.payout_pct + '%');
