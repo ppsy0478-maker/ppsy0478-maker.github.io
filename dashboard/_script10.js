@@ -391,8 +391,8 @@
   .vtb-box[hidden],.vtb-fab[hidden]{display:none!important}
   .vtb-box{width:340px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 36px);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:hidden}
   .vtb-box>*:not(.vtb-log){flex:none}
-  .vtb-head{position:relative;height:min(280px,34vh);background:#f6f3ee;border-bottom:1px solid var(--color-border-line);overflow:hidden}
-  .vtb-head .pt{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 8%;opacity:0;transition:opacity .35s ease}
+  .vtb-head{position:relative;height:min(380px,40vh);background:#f8f9f3;border-bottom:1px solid var(--color-border-line);overflow:hidden}
+  .vtb-head .pt{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 0;opacity:0;transition:opacity .35s ease}
   .vtb-head .pt.on{opacity:1}
   .vtb.talking .vtb-head .pt.on{animation:vtbtalk .35s ease-in-out infinite alternate}
   @keyframes vtbtalk{from{transform:translateY(0) scale(1)}to{transform:translateY(-3px) scale(1.012)}}
