@@ -125,8 +125,8 @@
       return { c, r, name: nmOf(r), sector: r.sector, price: p, d1: p0 ? (p / +p0.price - 1) * 100 : 0, dt: f0 ? (p / +f0.price - 1) * 100 : 0 }; });
     return { L, PV, F, list };
   }
-  const ALIAS = { '7203': '토요타 toyota', '8306': 'mufg 미쓰비시유에프제이', '2914': '재팬타바코 일본담배', '8031': '미쓰이물산 미츠이', '6178': '일본우정 우정', '9020': 'jr동일본 jr히가시니혼',
-    '9202': 'ana 전일공', '1605': '인펙스', '5020': '에네오스', '6758': '소니', '7013': '아이에이치아이', '9104': 'mol', '9101': 'nyk', '3635': '코에이', '6920': '레이저텍', '7267': '혼다', '8058': '미쓰비시상사',
+  const ALIAS = { '7203': '토요타 toyota', '8306': 'mufg 미쓰비시유에프제이', '2914': '재팬타바코 일본담배', '8031': '미쓰이물산 미츠이', '6178': '일본우정', '9020': 'jr동일본 jr히가시니혼',
+    '9202': '전일공', '1605': '인펙스', '5020': '에네오스', '6758': '소니', '7013': '아이에이치아이', '9101': 'nyk', '3635': '코에이', '6920': '레이저텍', '7267': '혼다', '8058': '미쓰비시상사',
     '8316': 'smbc 미쓰이스미토모', '8411': '미즈호', '8766': '도쿄해상', '8750': '다이이치생명', '8309': '스미토모미쓰이트러스트', '7182': '유초', '7832': '반다이', '4816': '도에이', '285A': 'kioxia', '7974': 'nintendo', '5253': 'cover' };
   function stocksIn(q) {
     const S = snap(), n = norm(q), found = [];
@@ -283,9 +283,8 @@
     meta = { ok: true, stock: null, casual: false };
     const raw = String(q || '').trim();
     if (!raw) return ['무엇이 궁금하세요? 종목 이름이나 "오늘 제일 오른 종목" 같은 질문을 해 주세요.'];
-    if (chatApiReady() && !isFin(raw) && !/(뭐|뭘|무엇을?|어떤\s*걸)\s*(할\s*수|물어|알려)|도움말|사용법|기능/.test(raw)) { meta.ok = false; meta.casual = true; return ['(AI 연결이 안 돼서 지금은 주식 질문만 답할 수 있어요.)']; }
-    if (/^(안녕|하이|hi|hello)/i.test(raw)) return ['안녕하세요! 종목, 수급, 금리, 일정, 배당 같은 걸 물어보시면 대시보드 자료에서 찾아 드릴게요.'];
-    if (/고마워|감사|땡큐|thanks/i.test(raw)) return ['천만에요! 또 궁금한 거 있으면 불러 주세요.'];
+    if (!chatApiReady() && /^(안녕|하이|hi|hello)/i.test(raw)) return ['안녕하세요! 종목, 수급, 금리, 일정, 배당 같은 걸 물어보시면 대시보드 자료에서 찾아 드릴게요.'];
+    if (!chatApiReady() && /고마워|감사|땡큐|thanks/i.test(raw)) return ['천만에요! 또 궁금한 거 있으면 불러 주세요.'];
     if (/(뭐|뭘|무엇을?|어떤\s*걸)\s*(할\s*수|물어|알려)|도움말|사용법|기능/.test(raw)) return ['이런 걸 물어볼 수 있어요.', '소니 어때, 미쓰비시중공업 목표주가, 토요타 배당, 키옥시아 왜 올랐어.', '오늘 제일 오른 종목, 9월 이후 많이 내린 종목, 외국인 수급, 미국 금리, 이번 주 일정, 배당 높은 종목.', '두 종목을 말하면 비교도 해 드려요. 예를 들어 소니랑 닌텐도 비교.'];
     let st = stocksIn(raw);
     const follow = !st.length && ctx && /그럼|거기|그\s*종목|걔|그거|이건|여기|그\s*회사|그\s*주식|얘/.test(raw);
@@ -293,8 +292,9 @@
     if (st.length >= 2 && /비교|vs|랑|하고|와|과|중에|어느/i.test(raw)) { ctx = st[0]; meta.stock = st[0]; meta.stock2 = st[1]; if (/왜|어떻게|생각|어느\s*게|뭐가\s*나|추천|좋아|나아/.test(raw)) meta.ok = false; return compareLines(st[0], st[1]); }
     if (st.length) { const x = st[0]; ctx = x; meta.stock = x;
       if (raw.length > 18 && !/목표|적정|배당|실적|결산|매출|이익|뉴스|왜|이유|52주|신고가|신용|공매도|게시판|분위기|주주|전망|업황|어때|알려|정보/.test(raw)) meta.ok = false; const a = aspectLines(x, raw); if (a) return a.filter(Boolean); const S = findStock(x.c); return S ? stockLines(S) : [x.name + ' 자료를 찾지 못했어요.']; }
-    const m = marketLines(raw); if (m && m.length) { if (raw.length > 22 && /왜|어떻게|생각|전망|괜찮|추천|해야|할까|일까|이유/.test(raw)) meta.ok = false; return m.filter(Boolean); }
+    const m = (chatApiReady() && !isFin(raw)) ? null : marketLines(raw); if (m && m.length) { if (raw.length > 22 && /왜|어떻게|생각|전망|괜찮|추천|해야|할까|일까|이유/.test(raw)) meta.ok = false; return m.filter(Boolean); }
     meta.ok = false;
+    if (chatApiReady() && !isFin(raw)) { meta.casual = true; return ['(AI 연결이 안 돼서 지금은 주식 질문만 답할 수 있어요.)']; }
     const clean = raw.replace(/[?？.!]+\s*$/, '').replace(/(에 대해|에대해)?\s*(알려\s*줘|알려줄래|어때|어때요|브리핑|찾아\s*줘|검색|해\s*줘|좀)\s*[?？.!]*$/g, '').replace(/(은|는|이|가)$/, '').trim();
     return wordLines(clean || raw);
   }
@@ -340,7 +340,7 @@
     });
     return out.join('\n').slice(0, 14000);
   }
-  const FIN = /주식|종목|주가|시장|증시|닛케이|지수|배당|목표|실적|결산|매출|이익|뉴스|수급|외국인|금리|국채|채권|공매도|신용|업종|섹터|반도체|방산|은행|상사|전망|업황|매수|매도|투자|수익|손실|포트폴리오|엔화|환율|달러|주주|52주|신고가|ETF|PER|PBR/i;
+  const FIN = /주식|종목|주가|시장|증시|닛케이|지수|배당|목표|실적|결산|매출|이익|뉴스|수급|외국인|금리|국채|채권|공매도|신용|업종|섹터|반도체|방산|은행|상사|전망|업황|매수|매도|투자|수익|손실|포트폴리오|엔화|환율|달러|주주|52주|신고가|ETF|PER|PBR|일정|캘린더|FOMC|고용통계|CPI|물가|상승|하락|오른|내린|급등|급락|올랐|떨어진|코스피|나스닥|엔저|엔고/i;
   const isFin = (q) => FIN.test(q) || stocksIn(q).length > 0;
   function casualContext() {
     const S = snap(), rep0 = rowsOf('market_reports').slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop();
