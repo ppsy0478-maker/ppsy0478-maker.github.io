@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281250">
+<html lang="ko" data-build="202611281252">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3191,8 +3191,8 @@
   css.textContent = `
   .vtb{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--font-anthropic-sans);color:var(--color-fg)}
   .vtb-fab{border:0;border-radius:999px;padding:12px 18px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#c0392b,#e0862f);box-shadow:0 6px 20px rgba(0,0,0,.25)}
-  .vtb-box{width:300px;background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:hidden}
-  .vtb-stage{position:relative;height:300px;background:radial-gradient(circle at 50% 35%,rgba(224,134,47,.18),transparent 70%)}
+  .vtb-box{width:300px;position:relative;display:flex;flex-direction:column;max-height:calc(100vh - 36px);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.28);overflow:hidden}
+  .vtb-stage{position:relative;height:300px;overflow:hidden;flex:none;background:radial-gradient(circle at 50% 35%,rgba(224,134,47,.18),transparent 70%)}
   .vtb-stage canvas{width:100%;height:100%;display:block}
   .vtb-fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
   .vtb-fallback img{width:150px;height:150px;border-radius:50%;object-fit:cover;border:3px solid #e0862f}
@@ -3209,7 +3209,8 @@
   .vtb-q button{font-size:15px;padding:4px 9px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);cursor:pointer}
   .vtb-q button.on{background:#c0392b;border-color:#c0392b}
   .vtb-log{display:none;flex-direction:column;gap:8px;max-height:300px;overflow:auto;padding:10px 10px 4px;border-top:1px solid var(--color-border-line)}
-  .vtb.chat .vtb-log{display:flex}.vtb.chat .vtb-stage{height:170px}.vtb.chat .vtb-sub{display:none}.vtb.chat.brief .vtb-sub{display:block}
+  .vtb.chat .vtb-log{display:flex;flex:1 1 auto;min-height:120px}.vtb.chat .vtb-stage{height:150px}.vtb.nochar .vtb-stage{height:0}.vtb.nochar .vtb-x{top:4px;right:4px;width:22px;height:22px}
+  .vtb-box>*:not(.vtb-log){flex:none}.vtb.chat .vtb-sub{display:none}.vtb.chat.brief .vtb-sub{display:block}
   .vtb-m{max-width:88%;padding:7px 10px;border-radius:12px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
   .vtb-m.me{align-self:flex-end;background:#c0392b;color:#fff;border-bottom-right-radius:4px}
   .vtb-m.bot{align-self:flex-start;background:var(--color-bg);border:1px solid var(--color-border-line);border-bottom-left-radius:4px}
@@ -3227,13 +3228,13 @@
   const root = document.createElement('div'); root.className = 'vtb';
   root.innerHTML = `<button class="vtb-fab" type="button">🎙 AI 브리핑</button>
   <div class="vtb-box" hidden>
-    <div class="vtb-stage"><button class="vtb-x" type="button" aria-label="접기">✕</button><div class="vtb-fallback"><img src="../img/title-cat.jpg" alt="브리핑 캐릭터"></div></div>
+    <button class="vtb-x" type="button" aria-label="접기">✕</button><div class="vtb-stage"><div class="vtb-fallback"><img src="../img/title-cat.jpg" alt="브리핑 캐릭터"></div></div>
     <div class="vtb-log" aria-live="polite"></div><div class="vtb-sub">▶ 를 누르면 오늘 시장을 브리핑해 드려요. 아래에 궁금한 걸 물어봐도 돼요.</div>
     <form class="vtb-q"><input type="search" placeholder="예: 소니 목표주가, 오늘 제일 오른 종목" aria-label="캐릭터에게 질문"><button type="submit" aria-label="검색">🔍</button><button type="button" data-a="mic" aria-label="말로 묻기">🎤</button><button type="button" data-a="read" aria-label="답변 소리내어 읽기" title="답변 소리내어 읽기">🔈</button></form>
     <div class="vtb-chips"><button type="button">오늘 제일 오른 종목</button><button type="button">외국인 수급</button><button type="button">이번 주 일정</button><button type="button">배당 높은 종목</button><button type="button">뭘 물어볼 수 있어?</button></div>
     <div class="vtb-bar"><button class="main" type="button" data-a="play">▶ 브리핑</button><button type="button" data-a="pause">⏸</button><button type="button" data-a="stop">■</button>
       <select data-a="rate" aria-label="말 빠르기"><option value="0.9">느리게</option><option value="1.05" selected>보통</option><option value="1.25">빠르게</option></select>
-      <select data-a="voice" aria-label="목소리"></select></div>
+      <select data-a="voice" aria-label="목소리"></select><button type="button" data-a="char" title="캐릭터 숨기기/보이기" aria-label="캐릭터 숨기기">👤</button></div>
     <div class="vtb-note">브리핑은 AI 음성 · 채팅은 대시보드 자료로 답하고, 어려운 질문·수다는 Google AI가 답해요(틀릴 수 있음). 대화는 이 브라우저에만 저장되고 AI로 전송되니 개인정보는 적지 마세요 · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
   </div>`;
   const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-stage'), sub = root.querySelector('.vtb-sub');
@@ -3266,8 +3267,8 @@
       const app = new PIXI.Application({ view: canvas, autoStart: true, backgroundAlpha: 0, width: stage.clientWidth, height: stage.clientHeight, resolution: Math.min(2, window.devicePixelRatio || 1), autoDensity: true });
       model = await PIXI.live2d.Live2DModel.from(MODEL, { autoInteract: false });
       app.stage.addChild(model);
-      const fit = () => { const s = stage.clientHeight / model.internalModel.height * 1.75; model.scale.set(s); model.anchor.set(0.5, 0); model.x = stage.clientWidth / 2; model.y = 6; }; window.__vtbModel = model;
-      fit();
+      const fit = () => { const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return; app.renderer.resize(w, h); const s = h / model.internalModel.height * 1.75; model.scale.set(s); model.anchor.set(0.5, 0); model.x = w / 2; model.y = 6; }; window.__vtbModel = model;
+      fit(); if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);
       let t = 0;
       model.internalModel.on('beforeModelUpdate', () => { t += 0.35; const v = !talking ? 0 : (analyser && audioEl && !audioEl.paused) ? audioLevel() : Math.max(0, Math.sin(t) * 0.6 + Math.sin(t * 2.3) * 0.35 + 0.2); model.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', Math.min(1, v)); });
       stage.addEventListener('click', () => { try { model.motion('TapBody'); } catch (e) {} });
@@ -3336,6 +3337,9 @@
     if (readOn) playLines(ai ? text.split(/(?<=[.!?。])\s+/).filter(Boolean) : lines);
   };
   window.__vtbAsk = ask;
+  const charBtn = root.querySelector('[data-a="char"]');
+  try { if (localStorage.getItem('vtb-nochar') === '1') root.classList.add('nochar'); } catch (e) {}
+  charBtn.onclick = () => { const on = root.classList.toggle('nochar'); try { localStorage.setItem('vtb-nochar', on ? '1' : '0'); } catch (e) {} };
   if (hist.length) { hist.slice(-10).forEach((h) => bubble(h.role === 'user' ? 'me' : 'bot', h.text)); }
   const clr = document.createElement('button'); clr.type = 'button'; clr.textContent = '대화 지우기';
   clr.onclick = () => { hist = []; saveHist(); log.replaceChildren(); root.classList.remove('chat'); };
