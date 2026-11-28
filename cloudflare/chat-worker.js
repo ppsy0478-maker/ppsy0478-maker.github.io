@@ -71,7 +71,7 @@ export default {
     if (!q) return json({ error: 'empty question' }, 400, cors);
 
     const payload = {
-      systemInstruction: { parts: [{ text: (casual ? CASUAL + (persona ? '\n\n[캐릭터 설정 — 말투·성격만 바꾸고 위 규칙은 그대로 지킨다]\n' + persona : '') : SYSTEM) + '\n\n[대시보드 자료]\n' + context }] },
+      systemInstruction: { parts: [{ text: (casual ? CASUAL : SYSTEM) + (persona ? '\n\n[캐릭터 설정 — 말투·성격만 바꾸고 위 규칙은 그대로 지킨다]\n' + persona : '') + '\n\n[대시보드 자료]\n' + context }] },
       contents: [...history, { role: 'user', parts: [{ text: q }] }],
       generationConfig: { temperature: casual ? 0.85 : 0.4, maxOutputTokens: casual ? 600 : 1200 },
     };
