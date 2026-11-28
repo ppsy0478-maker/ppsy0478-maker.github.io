@@ -276,8 +276,10 @@
     const ch = w.charCodeAt(w.length - 1); const bat = ch >= 0xac00 && ch <= 0xd7a3 ? (ch - 0xac00) % 28 !== 0 : /[0-9lmnLMN]$/.test(w);
     const pair = { '을': ['을', '를'], '를': ['을', '를'], '과': ['과', '와'], '와': ['과', '와'], '이에요': ['이에요', '예요'], '예요': ['이에요', '예요'] }[j];
     return w + (bat ? pair[0] : pair[1]); }).replace(/,\s*,/g, ',').replace(/,\s*([.!?])/g, '$1').replace(/\s+,/g, ',');
+  let meta = { ok: true, stock: null };
   function answer(q) { return answer0(q).map(josa); }
   function answer0(q) {
+    meta = { ok: true, stock: null };
     const raw = String(q || '').trim();
     if (!raw) return ['무엇이 궁금하세요? 종목 이름이나 "오늘 제일 오른 종목" 같은 질문을 해 주세요.'];
     if (/^(안녕|하이|hi|hello)/i.test(raw)) return ['안녕하세요! 종목, 수급, 금리, 일정, 배당 같은 걸 물어보시면 대시보드 자료에서 찾아 드릴게요.'];
@@ -286,12 +288,55 @@
     let st = stocksIn(raw);
     const follow = !st.length && ctx && /그럼|거기|그\s*종목|걔|그거|이건|여기|그\s*회사|그\s*주식|얘/.test(raw);
     if (follow) st = [ctx];
-    if (st.length >= 2 && /비교|vs|랑|하고|와|과|중에|어느/i.test(raw)) { ctx = st[0]; return compareLines(st[0], st[1]); }
-    if (st.length) { const x = st[0]; ctx = x; const a = aspectLines(x, raw); if (a) return a.filter(Boolean); const S = findStock(x.c); return S ? stockLines(S) : [x.name + ' 자료를 찾지 못했어요.']; }
-    const m = marketLines(raw); if (m && m.length) return m.filter(Boolean);
+    if (st.length >= 2 && /비교|vs|랑|하고|와|과|중에|어느/i.test(raw)) { ctx = st[0]; meta.stock = st[0]; meta.stock2 = st[1]; if (/왜|어떻게|생각|어느\s*게|뭐가\s*나|추천|좋아|나아/.test(raw)) meta.ok = false; return compareLines(st[0], st[1]); }
+    if (st.length) { const x = st[0]; ctx = x; meta.stock = x;
+      if (raw.length > 18 && !/목표|적정|배당|실적|결산|매출|이익|뉴스|왜|이유|52주|신고가|신용|공매도|게시판|분위기|주주|전망|업황|어때|알려|정보/.test(raw)) meta.ok = false; const a = aspectLines(x, raw); if (a) return a.filter(Boolean); const S = findStock(x.c); return S ? stockLines(S) : [x.name + ' 자료를 찾지 못했어요.']; }
+    const m = marketLines(raw); if (m && m.length) { if (raw.length > 22 && /왜|어떻게|생각|전망|괜찮|추천|해야|할까|일까|이유/.test(raw)) meta.ok = false; return m.filter(Boolean); }
+    meta.ok = false;
     const clean = raw.replace(/[?？.!]+\s*$/, '').replace(/(에 대해|에대해)?\s*(알려\s*줘|알려줄래|어때|어때요|브리핑|찾아\s*줘|검색|해\s*줘|좀)\s*[?？.!]*$/g, '').replace(/(은|는|이|가)$/, '').trim();
     return wordLines(clean || raw);
   }
+  const TAB = [[/목표|적정|애널/, 'targets', '목표주가 탭'], [/배당/, 'dividends', '배당 탭'], [/실적|결산|매출|이익/, 'perf', '실적 탭'], [/신용|공매도/, 'credit', '신용·공매도 탭'],
+    [/게시판|분위기/, 'board', '게시판 탭'], [/전망|업황/, 'outlook', '업황 탭'], [/외국인|수급|투자자/, 'investors', '투자자별 매매 탭'], [/금리|국채|채권/, 'ust', '미국 국채 탭'],
+    [/일정|캘린더|언제/, 'calendar', '일정 탭'], [/뉴스|소식|이슈/, 'news', '뉴스 탭'], [/닛케이|지수|시장|증시|시황/, 'reports', '시장 보고서 탭'], [/주주/, 'history', '회사 연혁 탭']];
+  function linksFor(q) {
+    const out = []; if (meta.stock) out.push({ label: meta.stock.name + ' 상세 보기', code: meta.stock.c });
+    if (meta.stock2) out.push({ label: meta.stock2.name + ' 상세 보기', code: meta.stock2.c });
+    const t = TAB.find(([re]) => re.test(q)); if (t && !(meta.stock && t[1] === 'history')) out.push({ label: t[2] + ' 열기', tab: t[1] });
+    return out.slice(0, 3);
+  }
+  function aiContext(q) {
+    const S = snap(), f1 = (v) => (v > 0 ? '+' : '') + v.toFixed(1) + '%', out = [];
+    const rep = rowsOf('market_reports').slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop();
+    out.push('[기준일] 최근 거래일 ' + S.L + ' (9.25부터 추적한 62종목)');
+    if (rep) out.push('[최근 시장 보고서 ' + String(rep.date).slice(0, 10) + '] ' + String(rep.lede || '').replace(/\s*¶\s*/g, ' ') + ' ' + String(rep.body || '').replace(/\s*¶\s*/g, ' ').slice(0, 900));
+    out.push('[62종목 종가·전일비·9.25이후] ' + S.list.map((x) => x.name + '(' + x.c + ',' + x.sector + ') ' + Math.round(x.price) + '엔 ' + f1(x.d1) + ' 누적' + f1(x.dt)).join('; '));
+    const iv = rowsOf('investor_flows').slice().sort((a, b) => String(a.week_end).localeCompare(String(b.week_end))).slice(-3);
+    if (iv.length) out.push('[투자자별 순매수, 억엔, 주간] ' + iv.map((w) => w.week_start + '~' + w.week_end + ' 외국인 ' + Math.round(w.for_net) + ' 개인 ' + Math.round(w.ind_net) + ' 신탁 ' + Math.round(w.trust_net) + ' 사업법인 ' + Math.round(w.biz_net)).join(' / '));
+    const ty = rowsOf('treasury').slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop(), ts = rowsOf('treasury_summary').slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop();
+    if (ty) out.push('[미국 국채 ' + ty.date + '] 2Y ' + ty.y2 + ' 10Y ' + ty.y10 + ' 30Y ' + ty.y30 + (ts ? ' / ' + ts.title : ''));
+    const ss = rowsOf('short_sector').filter((r) => r.sector === '시장 전체').sort((a, b) => String(a.date).localeCompare(String(b.date))).pop(); if (ss) out.push('[공매도 비율 시장 전체 ' + ss.date + '] ' + ss.short_pct + '%');
+    out.push('[다가오는 일정] ' + rowsOf('calendar').filter((r) => String(r.date).slice(0, 10) >= today()).slice(0, 10).map((r) => String(r.date).slice(0, 10) + ' ' + r.title + (r.status === '추정' ? '(추정)' : '')).join('; '));
+    const md0 = String(rowsOf('market_news').map((r) => String(r.date).slice(0, 10)).sort().pop() || '');
+    out.push('[시장 뉴스 ' + md0 + '] ' + rowsOf('market_news').filter((r) => String(r.date).slice(0, 10) === md0).slice(0, 10).map((r) => r.title + ': ' + String(r.summary || '').slice(0, 160)).join(' | '));
+    const sn = rowsOf('news').slice().sort((a, b) => String(b.datetime).localeCompare(String(a.datetime))).slice(0, 15);
+    const nm = new Map(S.list.map((x) => [x.c, x.name]));
+    out.push('[최근 종목 뉴스] ' + sn.map((r) => String(r.date).slice(5, 10) + ' ' + (nm.get(String(r.code)) || r.code) + ': ' + r.headline).join(' | '));
+    const st = stocksIn(q); if (!st.length && ctx) st.push(ctx);
+    st.slice(0, 3).forEach((x) => {
+      const c = x.c, info = [];
+      const t = rowsOf('targets').find((y) => String(y.code) === c); if (t && t.target) info.push('평균 목표주가 ' + t.target + '엔(' + (t.rating_label || '') + ', ' + (t.analysts || '?') + '명' + (t.flag ? ', 분할 미반영 가능' : '') + '), PBR ' + t.pbr + ' PER(예) ' + t.per_fc);
+      const v = rowsOf('dividends').find((y) => String(y.code) === c); if (v) info.push('예상배당 ' + v.dps_fc + '엔 수익률 ' + v.yield_pct + '% 성향 ' + v.payout_pct + '%');
+      const w = rowsOf('week52').find((y) => String(y.code) === c); if (w) info.push('52주 고가 ' + w.high + ' 저가 ' + w.low);
+      const pf = rowsOf('performance').filter((y) => String(y.code) === c).slice(-3); if (pf.length) info.push('실적(백만엔) ' + pf.map((y) => y.fy_label + ' 매출 ' + y.sales + ' 영업 ' + y.op + ' 순익 ' + y.net).join(' / '));
+      const o = rowsOf('outlook').find((y) => String(y.code) === c); if (o) info.push('업황 ' + o.verdict + ': ' + String(o.env_ko || '').slice(0, 300));
+      const n = rowsOf('news').filter((y) => String(y.code) === c).sort((a, b) => String(b.datetime).localeCompare(String(a.datetime))).slice(0, 4); if (n.length) info.push('뉴스 ' + n.map((y) => String(y.date).slice(5, 10) + ' ' + y.headline + ' - ' + String(y.detail || '').slice(0, 150)).join(' | '));
+      const cal = rowsOf('calendar').filter((y) => String(y.code) === c && String(y.date).slice(0, 10) >= today()).slice(0, 2); if (cal.length) info.push('일정 ' + cal.map((y) => String(y.date).slice(0, 10) + ' ' + y.title + (y.status === '추정' ? '(추정)' : '')).join(', '));
+      out.push('[종목 ' + x.name + ' ' + c + '] ' + info.join(' / '));
+    });
+    return out.join('\n').slice(0, 14000);
+  }
+  window.__vtbContext = aiContext;
   window.__vtbScript = script;
   window.__vtbAnswer = answer;
   /* ---------- 화면 ---------- */
@@ -316,7 +361,17 @@
   .vtb-q input{flex:1;min-width:0;font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg)}
   .vtb-q button{font-size:15px;padding:4px 9px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);cursor:pointer}
   .vtb-q button.on{background:#c0392b;border-color:#c0392b}
-  .vtb-you{padding:8px 12px 0;font-size:12.5px;color:var(--color-fg-muted)}
+  .vtb-log{display:none;flex-direction:column;gap:8px;max-height:300px;overflow:auto;padding:10px 10px 4px;border-top:1px solid var(--color-border-line)}
+  .vtb.chat .vtb-log{display:flex}.vtb.chat .vtb-stage{height:170px}.vtb.chat .vtb-sub{display:none}.vtb.chat.brief .vtb-sub{display:block}
+  .vtb-m{max-width:88%;padding:7px 10px;border-radius:12px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+  .vtb-m.me{align-self:flex-end;background:#c0392b;color:#fff;border-bottom-right-radius:4px}
+  .vtb-m.bot{align-self:flex-start;background:var(--color-bg);border:1px solid var(--color-border-line);border-bottom-left-radius:4px}
+  .vtb-m.bot .ai{display:inline-block;font-size:10.5px;font-weight:700;color:#e0862f;border:1px solid #e0862f;border-radius:4px;padding:0 4px;margin-right:4px;vertical-align:1px}
+  .vtb-m.bot .lk{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .vtb-m.bot .lk button{font:inherit;font-size:12px;padding:2px 7px;border-radius:6px;border:1px solid #e0862f;background:transparent;color:var(--color-fg);cursor:pointer}
+  .vtb-m.bot small{display:block;margin-top:4px;font-size:11px;color:var(--color-fg-muted)}
+  .vtb-m.wait{opacity:.7;font-style:italic}
+  .vtb-box{width:340px}
   .vtb-chips{display:flex;flex-wrap:wrap;gap:5px;padding:6px 10px 0}
   .vtb-chips button{font:inherit;font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
   .vtb-chips button:hover{border-color:#e0862f}
@@ -326,13 +381,13 @@
   root.innerHTML = `<button class="vtb-fab" type="button">🎙 AI 브리핑</button>
   <div class="vtb-box" hidden>
     <div class="vtb-stage"><button class="vtb-x" type="button" aria-label="접기">✕</button><div class="vtb-fallback"><img src="../img/title-cat.jpg" alt="브리핑 캐릭터"></div></div>
-    <div class="vtb-you" hidden></div><div class="vtb-sub">▶ 를 누르면 오늘 시장을 브리핑해 드려요. 아래에 궁금한 걸 물어봐도 돼요.</div>
-    <form class="vtb-q"><input type="search" placeholder="예: 소니 목표주가, 오늘 제일 오른 종목" aria-label="캐릭터에게 질문"><button type="submit" aria-label="검색">🔍</button><button type="button" data-a="mic" aria-label="말로 검색">🎤</button></form>
+    <div class="vtb-log" aria-live="polite"></div><div class="vtb-sub">▶ 를 누르면 오늘 시장을 브리핑해 드려요. 아래에 궁금한 걸 물어봐도 돼요.</div>
+    <form class="vtb-q"><input type="search" placeholder="예: 소니 목표주가, 오늘 제일 오른 종목" aria-label="캐릭터에게 질문"><button type="submit" aria-label="검색">🔍</button><button type="button" data-a="mic" aria-label="말로 묻기">🎤</button><button type="button" data-a="read" aria-label="답변 소리내어 읽기" title="답변 소리내어 읽기">🔈</button></form>
     <div class="vtb-chips"><button type="button">오늘 제일 오른 종목</button><button type="button">외국인 수급</button><button type="button">이번 주 일정</button><button type="button">배당 높은 종목</button><button type="button">뭘 물어볼 수 있어?</button></div>
     <div class="vtb-bar"><button class="main" type="button" data-a="play">▶ 브리핑</button><button type="button" data-a="pause">⏸</button><button type="button" data-a="stop">■</button>
       <select data-a="rate" aria-label="말 빠르기"><option value="0.9">느리게</option><option value="1.05" selected>보통</option><option value="1.25">빠르게</option></select>
       <select data-a="voice" aria-label="목소리"></select></div>
-    <div class="vtb-note">브리핑은 AI 음성, 질문 답변은 대시보드 자료에서 찾아 브라우저 음성으로 · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
+    <div class="vtb-note">브리핑은 AI 음성 · 채팅은 대시보드 자료로 답하고, 어려운 질문은 AI가 답해요(틀릴 수 있음) · 캐릭터 Live2D 샘플 모델(Live2D Inc.)</div>
   </div>`;
   const fab = root.querySelector('.vtb-fab'), box = root.querySelector('.vtb-box'), stage = root.querySelector('.vtb-stage'), sub = root.querySelector('.vtb-sub');
   const vsel = root.querySelector('[data-a="voice"]'), rsel = root.querySelector('[data-a="rate"]');
@@ -389,8 +444,48 @@
   }
   function playLines(lines) { stopAudio(); if (synth) synth.cancel(); queue = lines; idx = 0; speakNext(); }
   const qf = root.querySelector('.vtb-q'), qi = qf.querySelector('input'), mic = qf.querySelector('[data-a="mic"]');
-  const you = root.querySelector('.vtb-you');
-  const ask = (q) => { q = String(q || '').trim(); if (!q) return; you.hidden = false; you.textContent = '🙋 ' + q; playLines(answer(q)); };
+  const log = root.querySelector('.vtb-log'), readBtn = qf.querySelector('[data-a="read"]');
+  let readOn = false; try { readOn = localStorage.getItem('vtb-read') === '1'; } catch (e) {}
+  const paintRead = () => { readBtn.textContent = readOn ? '🔊' : '🔈'; readBtn.classList.toggle('on', readOn); };
+  paintRead(); readBtn.onclick = () => { readOn = !readOn; paintRead(); try { localStorage.setItem('vtb-read', readOn ? '1' : '0'); } catch (e) {} if (!readOn && synth) { synth.cancel(); setTalk(false); } };
+  const hist = [];
+  let chatApi = null;
+  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; }).catch(() => {});
+  function goTo(l) {
+    const b = document.querySelector('.sj .sj-tab[data-go="' + (l.code ? 'detail' : l.tab) + '"]'); if (b) b.click();
+    if (l.code) setTimeout(() => { const sel = document.querySelector('[data-draw="dt-select"]'); if (sel) { sel.value = l.code; sel.dispatchEvent(new Event('change')); } const h = document.getElementById('h-detail'); if (h) h.scrollIntoView({ block: 'start' }); }, 60);
+  }
+  function bubble(kind, text, opt = {}) {
+    root.classList.add('chat'); root.classList.remove('brief');
+    const m = document.createElement('div'); m.className = 'vtb-m ' + kind + (opt.wait ? ' wait' : '');
+    if (opt.ai) { const b = document.createElement('span'); b.className = 'ai'; b.textContent = 'AI'; m.append(b); }
+    m.append(document.createTextNode(text));
+    if (opt.links && opt.links.length) { const lk = document.createElement('div'); lk.className = 'lk'; opt.links.forEach((l) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = l.label; b.onclick = () => goTo(l); lk.append(b); }); m.append(lk); }
+    if (opt.note) { const sm = document.createElement('small'); sm.textContent = opt.note; m.append(sm); }
+    log.append(m); while (log.children.length > 40) log.firstChild.remove(); log.scrollTop = log.scrollHeight; return m;
+  }
+  async function askAI(q) {
+    const r = await fetch(chatApi, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, context: aiContext(q), history: hist.slice(-6) }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.answer) throw new Error(j.error || ('HTTP ' + r.status));
+    return String(j.answer).trim();
+  }
+  const ask = async (q) => {
+    q = String(q || '').trim(); if (!q) return;
+    bubble('me', q);
+    const lines = answer(q), links = linksFor(q);
+    let text = lines.join('\n'), ai = false, note = '';
+    if (!meta.ok && chatApi) {
+      const w = bubble('bot', '자료를 살펴보는 중이에요…', { wait: true });
+      try { text = await askAI(q); ai = true; note = 'AI 답변은 틀릴 수 있어요. 투자 판단은 본인 몫이에요.'; }
+      catch (e) { note = /limit|429|quota/i.test(String(e.message)) ? '오늘 AI 사용 한도가 끝나서 기본 검색으로 답했어요.' : 'AI 연결이 안 돼서 기본 검색으로 답했어요.'; }
+      w.remove();
+    }
+    bubble('bot', text, { ai, links, note });
+    hist.push({ role: 'user', text: q }, { role: 'model', text: text.slice(0, 600) }); while (hist.length > 12) hist.shift();
+    if (readOn) playLines(ai ? text.split(/(?<=[.!?。])\s+/).filter(Boolean) : lines);
+  };
+  window.__vtbAsk = ask;
   qf.onsubmit = (e) => { e.preventDefault(); ask(qi.value); qi.value = ''; };
   root.querySelectorAll('.vtb-chips button').forEach((b) => { b.onclick = () => ask(b.textContent); });
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -431,11 +526,12 @@
   root.querySelector('[data-a="play"]').onclick = () => {
     if (audioEl && audioEl.paused && audioEl.currentTime > 0 && !audioEl.ended) { audioEl.play(); return; }
     if (synth && synth.paused) { synth.resume(); setTalk(true); return; }
+    root.classList.add('brief');
     if (vsel.value === 'ai') playBrief(); else playLines(script());
     try { model && model.motion('Idle'); } catch (e) {}
   };
   root.querySelector('[data-a="pause"]').onclick = () => { if (audioEl && !audioEl.paused) { audioEl.pause(); return; } if (synth && synth.speaking) { synth.pause(); setTalk(false); } };
-  root.querySelector('[data-a="stop"]').onclick = () => { stopAudio(); if (synth) synth.cancel(); queue = []; setTalk(false); sub.textContent = '▶ 를 누르면 오늘 시장을 브리핑해 드려요.'; };
+  root.querySelector('[data-a="stop"]').onclick = () => { stopAudio(); if (synth) synth.cancel(); queue = []; setTalk(false); sub.textContent = '▶ 를 누르면 오늘 시장을 브리핑해 드려요.'; root.classList.remove('brief'); };
   fab.onclick = () => { fab.hidden = true; box.hidden = false; initModel(); };
   root.querySelector('.vtb-x').onclick = (e) => { e.stopPropagation(); stopAudio(); if (synth) synth.cancel(); setTalk(false); box.hidden = true; fab.hidden = false; };
 })();
