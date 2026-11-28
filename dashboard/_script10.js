@@ -435,6 +435,8 @@
   .vtb-m .spark{display:block;margin-top:6px}.vtb-m .spark small{display:block;margin:0;font-size:11px;color:var(--color-fg-muted)}
   .vtb-balloon{position:absolute;right:0;bottom:calc(100% + 10px);width:250px;display:flex;gap:8px;align-items:flex-start;padding:9px 10px;border-radius:12px;background:var(--color-panel);border:1px solid var(--color-border-line);box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:13.5px;line-height:1.5;cursor:pointer;animation:vtbpop .25s ease-out}
   .vtb-m.solo{font-style:italic;color:var(--color-fg-muted);background:transparent;border-style:dashed}
+  .vtb-fab{position:relative}.vtb-fab .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#ff3b30;color:#fff;font-size:12px;line-height:20px;text-align:center;box-shadow:0 0 0 2px #fff}
+  .vtb-balloon b{display:block;font-size:12px;margin-bottom:1px}
   .vtb-balloon img{width:40px;height:40px;border-radius:40%;object-fit:cover;flex:none}
   @keyframes vtbpop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}`;
   document.head.append(css);
@@ -602,9 +604,9 @@
   function showBalloon(text, q, mood) {
     if (balloon) balloon.remove();
     balloon = document.createElement('div'); balloon.className = 'vtb-balloon';
-    balloon.innerHTML = '<img src="' + (AV[mood] || AV.stock) + '" alt="">'; const sp = document.createElement('span'); sp.textContent = text; balloon.append(sp);
+    balloon.innerHTML = '<img src="' + (AV[mood] || AV.stock) + '" alt="">'; const sp = document.createElement('span'); const nm = document.createElement('b'); nm.textContent = NAME; sp.append(nm, document.createTextNode(text)); balloon.append(sp);
     balloon.onclick = () => { balloon.remove(); balloon = null; fab.click(); if (q) setTimeout(() => ask(q), 300); };
-    root.append(balloon); const me = balloon; setTimeout(() => { if (balloon === me) { me.remove(); balloon = null; } }, 8000);
+    root.append(balloon); const me = balloon; setTimeout(() => { if (balloon === me) { me.remove(); balloon = null; } }, 12000);
   }
   document.querySelectorAll('.sj .sj-tab').forEach((t) => t.addEventListener('click', () => {
     const id = t.dataset.go, tk = TAB_TALK[id]; if (!tk || !pc()) return;
@@ -694,15 +696,33 @@
   let lastAct = Date.now(), soloCount = 0, soloTimer = null;
   root.addEventListener('pointerdown', () => { lastAct = Date.now(); });
   qi.addEventListener('input', () => { lastAct = Date.now(); });
+  /* 안 읽은 혼잣말: 버튼 배지 + 탭 제목 (1) + 돌아오면 말풍선 */
+  const unread = []; const baseTitle = document.title;
+  const paintUnread = () => {
+    let bd = fab.querySelector('.badge'); if (!bd) { bd = document.createElement('span'); bd.className = 'badge'; fab.append(bd); }
+    bd.textContent = unread.length; bd.hidden = !unread.length;
+    document.title = unread.length ? '(' + unread.length + ') ' + baseTitle : baseTitle;
+  };
+  function deliverSolo(mood, text) {
+    if (!box.hidden && !document.hidden) { setMood(mood); bubble('bot', text, { mood, type: true, solo: true }); return; }
+    unread.push([mood, text]); while (unread.length > 9) unread.shift(); paintUnread();
+    if (!document.hidden) showBalloon(text, null, mood);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !unread.length) return;
+    const [mood, text] = unread[unread.length - 1];
+    setTimeout(() => { if (box.hidden) showBalloon(text, null, mood); else flushUnread(); }, 1200);
+  });
+  function flushUnread() { if (!unread.length) return; unread.splice(0).forEach(([mood, text]) => { setMood(mood); bubble('bot', text, { mood, solo: true }); }); paintUnread(); }
   function soloTick() {
     soloTimer = setTimeout(soloTick, (4 + Math.random() * 4) * 60e3);
-    if (document.hidden || !pc() || soloCount >= 10 || Date.now() - lastAct < 90e3 || root.classList.contains('talking')) return;
+    if (!pc() || soloCount >= 10 || Date.now() - lastAct < 90e3 || root.classList.contains('talking')) return;
+    if (document.hidden && unread.length >= 3) return;
     const [mood, text] = soloLine(); soloCount++;
-    if (!box.hidden) { setMood(mood); bubble('bot', text, { mood, type: true, solo: true }); }
-    else { showBalloon(text, null, mood); }
+    deliverSolo(mood, text);
   }
-  soloTimer = setTimeout(soloTick, (3 + Math.random() * 2) * 60e3);
+  soloTimer = setTimeout(soloTick, (2 + Math.random() * 2) * 60e3);
   window.__vtbSolo = () => { lastAct = 0; soloCount = 0; clearTimeout(soloTimer); soloTick(); };
-  fab.onclick = () => { fab.hidden = true; box.hidden = false; if (balloon) { balloon.remove(); balloon = null; } greet(); };
+  fab.onclick = () => { fab.hidden = true; box.hidden = false; if (balloon) { balloon.remove(); balloon = null; } greet().then(flushUnread); };
   root.querySelector('.vtb-x').onclick = (e) => { e.stopPropagation(); stopAudio(); if (synth) synth.cancel(); setTalk(false); box.hidden = true; fab.hidden = false; };
 })();
