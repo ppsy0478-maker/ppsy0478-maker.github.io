@@ -298,7 +298,9 @@
   const BOND_TXT = ['사귄 지 얼마 안 됨: 쑥스러워서 츤데레가 강하고, 좋아한다는 티를 들키면 크게 허둥댄다.', '조금 익숙해짐: 퉁명스럽지만 보고 싶었다·걱정했다는 본심이 자주 새어 나온다.', '꽤 깊어짐: 둘만 있을 땐 다정한 말을 먼저 하다가 부끄러워 얼버무린다.', '아주 깊어짐: 거의 다정한 여자친구. 가끔만 "회사에선 비밀이에요"라며 새침하게 군다.'];
   const bondNote = () => '\n[친밀도 ' + bondLv() + '/3] ' + BOND_TXT[bondLv()];
   const watchNote = () => { const W = watchStocks(); return W.length ? '\n[선생님 관심 종목] ' + W.map((x) => x.name).join(', ') + ' — 관련 있으면 먼저 언급한다.' : ''; };
-  const MOOD_RULE = '\n[표정 규칙] 답변 맨 앞에 [표정:웃음] [표정:새침] [표정:놀람] [표정:걱정] [표정:부끄러움] [표정:뿌듯함] 중 내용에 가장 어울리는 하나를 붙인다. 태그는 한 번만.';
+  const MOOD_RULE = '\n[표정] 답 맨 앞에 [표정:웃음|새침|놀람|걱정|부끄러움|뿌듯함] 중 어울리는 하나만 붙인다.';
+  const SKEY = 'vtb-spicy-v1';
+  const spicyOn = () => { try { return localStorage.getItem(SKEY) === '1'; } catch (e) { return false; } };
   function answer(q) { return answer0(q).map(josa); }
   function answer0(q) {
     meta = { ok: true, stock: null, casual: false, mood: null };
@@ -500,8 +502,8 @@
   const HKEY = 'vtb-chat-v1'; let hist = [];
   try { hist = JSON.parse(localStorage.getItem(HKEY) || '[]').slice(-24); } catch (e) { hist = []; }
   const saveHist = () => { try { localStorage.setItem(HKEY, JSON.stringify(hist.slice(-24))); } catch (e) {} };
-  let chatApi = null, persona = '', personaStock = '', exCasual = [], exStock = [];
-  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; chatApiReady = () => !!chatApi; persona = c && c.persona ? String(c.persona) : ''; personaStock = c && c.persona_stock ? String(c.persona_stock) : ''; exCasual = c && Array.isArray(c.examples_casual) ? c.examples_casual : []; exStock = c && Array.isArray(c.examples_stock) ? c.examples_stock : []; }).catch(() => {});
+  let chatApi = null, persona = '', personaStock = '', personaSpicy = '', exCasual = [], exStock = [], exObsess = [], exSpicy = [];
+  fetch('data/chat_config.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((c) => { chatApi = c && c.api ? c.api : null; chatApiReady = () => !!chatApi; persona = c && c.persona ? String(c.persona) : ''; personaStock = c && c.persona_stock ? String(c.persona_stock) : ''; exCasual = c && Array.isArray(c.examples_casual) ? c.examples_casual : []; exStock = c && Array.isArray(c.examples_stock) ? c.examples_stock : []; exObsess = c && Array.isArray(c.examples_obsess) ? c.examples_obsess : []; exSpicy = c && Array.isArray(c.examples_spicy) ? c.examples_spicy : []; personaSpicy = c && c.persona_spicy ? String(c.persona_spicy) : ''; paintSpicy(); }).catch(() => {});
   function goTo(l) {
     const b = document.querySelector('.sj .sj-tab[data-go="' + (l.code ? 'detail' : l.tab) + '"]'); if (b) b.click();
     if (l.code) setTimeout(() => { const sel = document.querySelector('[data-draw="dt-select"]'); if (sel) { sel.value = l.code; sel.dispatchEvent(new Event('change')); } const h = document.getElementById('h-detail'); if (h) h.scrollIntoView({ block: 'start' }); }, 60);
@@ -523,6 +525,7 @@
     if (opt.dots) { const d = document.createElement('span'); d.className = 'vtb-dots'; d.innerHTML = '<span></span><span></span><span></span>'; m.append(d); }
     const tn = document.createTextNode(opt.type ? '' : text); m.append(tn);
     if (opt.spark) { const sp = sparkFor(opt.spark); if (sp) m.append(sp); }
+    if (opt.actions && opt.actions.length) { const sg = document.createElement('div'); sg.className = 'sg'; opt.actions.forEach((a) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = a.label; b.onclick = () => { sg.remove(); a.fn(); }; sg.append(b); }); m.append(sg); }
     if (opt.suggest && opt.suggest.length) { const sg = document.createElement('div'); sg.className = 'sg'; opt.suggest.forEach((q) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = q; b.onclick = () => ask(q); sg.append(b); }); m.append(sg); }
     if (opt.links && opt.links.length) { const lk = document.createElement('div'); lk.className = 'lk'; opt.links.forEach((l) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = l.label; b.onclick = () => goTo(l); lk.append(b); }); m.append(lk); }
     if (opt.note) { const sm = document.createElement('small'); sm.textContent = opt.note; m.append(sm); }
@@ -534,14 +537,15 @@
   }
   const typing = (mood) => bubble('bot', '', { dots: true, mood });
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   function exampleBlock(casual) {
-    const pool = (casual ? exCasual : exStock).slice(); if (!pool.length) return '';
-    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-    return '\n\n[말투 참고용 대화 예시 — 이런 말투·길이·표정 태그를 따라 하되 문장을 그대로 베끼지 말고, ○ 자리는 실제 자료의 숫자로 채운다]\n' + pool.slice(0, casual ? 10 : 3).map((e) => '사용자: ' + e.u + '\n레이코: ' + e.a).join('\n');
+    const pick = casual ? shuffle(exCasual).slice(0, spicyOn() ? 6 : 8).concat(shuffle(exObsess).slice(0, 2), spicyOn() ? shuffle(exSpicy).slice(0, 3) : []) : shuffle(exStock).slice(0, 3);
+    if (!pick.length) return '';
+    return '\n\n[말투 참고용 대화 예시 — 이런 말투·길이·표정 태그를 따라 하되 문장을 그대로 베끼지 말고, ○ 자리는 실제 자료의 숫자로 채운다]\n' + shuffle(pick).map((e) => '사용자: ' + e.u + '\n레이코: ' + e.a).join('\n');
   }
   async function askAI(q, casual) {
     const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 50000);
-    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', persona: (casual ? persona + bondNote() : personaStock + watchNote()) + MOOD_RULE, context: (casual ? casualContext() : aiContext(q)) + exampleBlock(casual), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
+    const r = await fetch(chatApi, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, mode: casual ? 'casual' : 'stock', persona: (casual ? persona + (spicyOn() && personaSpicy ? '\n' + personaSpicy : '') + bondNote() : personaStock + watchNote()) + MOOD_RULE, context: (casual ? casualContext() : aiContext(q)) + exampleBlock(casual), history: hist.slice(casual ? -12 : -6) }) }).finally(() => clearTimeout(tm));
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.answer) throw new Error(j.error || ('HTTP ' + r.status));
     return String(j.answer).trim();
@@ -625,8 +629,18 @@
   const clr = document.createElement('button'); clr.type = 'button'; clr.textContent = '대화 지우기';
   clr.onclick = () => { hist = []; saveHist(); log.replaceChildren(); setMood('stock'); };
   root.querySelector('.vtb-chips').append(clr);
+  const spBtn = document.createElement('button'); spBtn.type = 'button';
+  function paintSpicy() { spBtn.textContent = spicyOn() ? '💗 두근 모드 ON' : '🤍 두근 모드'; spBtn.style.borderColor = spicyOn() ? '#e0567a' : ''; }
+  spBtn.onclick = () => {
+    if (spicyOn()) { try { localStorage.setItem(SKEY, '0'); } catch (e) {} paintSpicy(); setMood('casual'); bubble('bot', '…알겠어요. 다시 얌전한 비밀연애로 돌아갈게요. 아쉬운 거 아니에요.', { mood: 'casual', type: true }); return; }
+    setMood('embarrassed');
+    bubble('bot', '두, 두근 모드요…? 표현이 조금 과감해져요. 확인할게요. 만 19세 이상이세요?', { mood: 'embarrassed', actions: [
+      { label: '네, 성인이에요', fn: () => { try { localStorage.setItem(SKEY, '1'); } catch (e) {} paintSpicy(); setMood('embarrassed'); bubble('bot', '…그럼 오늘부터는 조금 솔직해질게요. 각오하세요, 선생님.', { mood: 'embarrassed', type: true }); } },
+      { label: '아니요', fn: () => { setMood('casual'); bubble('bot', '그럼 지금처럼 지내요. …이것도 충분히 두근거리잖아요.', { mood: 'casual', type: true }); } }] });
+  };
+  root.querySelector('.vtb-chips').append(spBtn); paintSpicy();
   qf.onsubmit = (e) => { e.preventDefault(); ask(qi.value); qi.value = ''; };
-  root.querySelectorAll('.vtb-chips button').forEach((b) => { b.onclick = () => ask(b.textContent); });
+  root.querySelectorAll('.vtb-chips button').forEach((b) => { if (b !== clr && b !== spBtn) b.onclick = () => ask(b.textContent); });
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) mic.hidden = true; else {
     let rec = null;
