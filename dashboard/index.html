@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281207">
+<html lang="ko" data-build="202611281211">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3146,7 +3146,9 @@
     const rep = rowsOf('market_reports').slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop();
     out.push('[기준일] 최근 거래일 ' + S.L + ' (9.25부터 추적한 62종목)');
     if (rep) out.push('[최근 시장 보고서 ' + String(rep.date).slice(0, 10) + '] ' + String(rep.lede || '').replace(/\s*¶\s*/g, ' ') + ' ' + String(rep.body || '').replace(/\s*¶\s*/g, ' ').slice(0, 900));
-    out.push('[62종목 종가·전일비·9.25이후] ' + S.list.map((x) => x.name + '(' + x.c + ',' + x.sector + ') ' + Math.round(x.price) + '엔 ' + f1(x.d1) + ' 누적' + f1(x.dt)).join('; '));
+    const DV = new Map(rowsOf('dividends').map((r) => [String(r.code), r])), TG = new Map(rowsOf('targets').map((r) => [String(r.code), r]));
+    out.push('[62종목: 이름(코드,업종) 종가 전일비 9.25이후누적 배당수익률 목표주가괴리] ' + S.list.map((x) => { const v = DV.get(x.c), t = TG.get(x.c);
+      return x.name + '(' + x.c + ',' + x.sector + ') ' + Math.round(x.price) + '엔 ' + f1(x.d1) + ' 누적' + f1(x.dt) + (v && v.yield_pct !== '' ? ' 배당' + (+v.yield_pct).toFixed(1) + '%' : '') + (t && t.target && !t.flag ? ' 목표' + f1((+t.target / x.price - 1) * 100) : ''); }).join('; '));
     const iv = rowsOf('investor_flows').slice().sort((a, b) => String(a.week_end).localeCompare(String(b.week_end))).slice(-3);
     if (iv.length) out.push('[투자자별 순매수, 억엔, 주간] ' + iv.map((w) => w.week_start + '~' + w.week_end + ' 외국인 ' + Math.round(w.for_net) + ' 개인 ' + Math.round(w.ind_net) + ' 신탁 ' + Math.round(w.trust_net) + ' 사업법인 ' + Math.round(w.biz_net)).join(' / '));
     const ty = rowsOf('treasury').slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop(), ts = rowsOf('treasury_summary').slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).pop();
