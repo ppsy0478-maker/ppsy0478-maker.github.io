@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-build="202611281346">
+<html lang="ko" data-build="202611281353">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -3218,7 +3218,7 @@
   const PT = Object.fromEntries(MOODS.map((m) => [m, 'img/portrait_' + m + '.webp']));
   const MOOD_KO = { '웃음': 'stock', '새침': 'casual', '놀람': 'surprised', '걱정': 'worried', '부끄러움': 'embarrassed', '뿌듯함': 'proud' };
   const MOOD_STATUS = { stock: '친절한 주식 비서 모드', casual: '…흥, 수다 상대 해 드릴게요', surprised: '엣, 잠깐만요…!', worried: '선생님이 좀 걱정돼요', embarrassed: '그, 그런 거 아니에요…', proud: '이 정도는 기본이죠' };
-  const NAME = 'AI 비서';
+  const NAME = '쿠로사키 레이코', FAB_NAME = 'AI 비서';
   const css = document.createElement('style');
   css.textContent = `
   .vtb{position:fixed;right:18px;bottom:18px;z-index:50;font-family:var(--font-anthropic-sans);color:var(--color-fg)}
@@ -3270,11 +3270,12 @@
   .vtb-m .sg button{font:inherit;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg);cursor:pointer}
   .vtb-m .spark{display:block;margin-top:6px}.vtb-m .spark small{display:block;margin:0;font-size:11px;color:var(--color-fg-muted)}
   .vtb-balloon{position:absolute;right:0;bottom:calc(100% + 10px);width:250px;display:flex;gap:8px;align-items:flex-start;padding:9px 10px;border-radius:12px;background:var(--color-panel);border:1px solid var(--color-border-line);box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:13.5px;line-height:1.5;cursor:pointer;animation:vtbpop .25s ease-out}
+  .vtb-m.solo{font-style:italic;color:var(--color-fg-muted);background:transparent;border-style:dashed}
   .vtb-balloon img{width:40px;height:40px;border-radius:40%;object-fit:cover;flex:none}
   @keyframes vtbpop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}`;
   document.head.append(css);
   const root = document.createElement('div'); root.className = 'vtb';
-  root.innerHTML = `<button class="vtb-fab" type="button"><img src="${AV.stock}" alt="">${NAME}</button>
+  root.innerHTML = `<button class="vtb-fab" type="button"><img src="${AV.stock}" alt="">${FAB_NAME}</button>
   <div class="vtb-box" hidden>
     <button class="vtb-x" type="button" aria-label="닫기">✕</button>
     <div class="vtb-head">${MOODS.map((m, i) => '<img class="pt' + (i ? '' : ' on') + '" data-m="' + m + '" src="' + PT[m] + '" alt="' + (i ? '' : NAME) + '"' + (i > 1 ? ' loading="lazy"' : '') + '>').join('')}<div class="cap"><b>${NAME} <i data-a="bond"></i></b><span data-a="status">주식 얘기도, 수다도 OK</span></div></div>
@@ -3351,7 +3352,7 @@
   }
   function bubble(kind, text, opt = {}) {
     const hello = log.querySelector('.vtb-hello'); if (hello) hello.remove();
-    const m = document.createElement('div'); m.className = 'vtb-m ' + kind + (opt.wait ? ' wait' : '');
+    const m = document.createElement('div'); m.className = 'vtb-m ' + kind + (opt.wait ? ' wait' : '') + (opt.solo ? ' solo' : '');
     if (opt.ai) { const b = document.createElement('span'); b.className = 'ai'; b.textContent = 'AI'; m.append(b); }
     if (opt.dots) { const d = document.createElement('span'); d.className = 'vtb-dots'; d.innerHTML = '<span></span><span></span><span></span>'; m.append(d); }
     const tn = document.createTextNode(opt.type ? '' : text); m.append(tn);
@@ -3434,10 +3435,10 @@
     ust: ['미국 금리가 일본 증시에도 영향이 커요. 요약해 드릴까요?', '미국 금리'], news: ['오늘 시장 뉴스 제목만 빠르게 읽어 드릴까요?', '오늘 시장 뉴스'], reports: ['오늘 시장은 ▶ 브리핑으로 들으셔도 돼요. 아니면 요약해 드릴까요?', '오늘 시장 어땠어'] };
   const TKEY = 'vtb-tabseen-v1';
   let balloon = null;
-  function showBalloon(text, q) {
+  function showBalloon(text, q, mood) {
     if (balloon) balloon.remove();
     balloon = document.createElement('div'); balloon.className = 'vtb-balloon';
-    balloon.innerHTML = '<img src="' + AV.stock + '" alt="">'; const sp = document.createElement('span'); sp.textContent = text; balloon.append(sp);
+    balloon.innerHTML = '<img src="' + (AV[mood] || AV.stock) + '" alt="">'; const sp = document.createElement('span'); sp.textContent = text; balloon.append(sp);
     balloon.onclick = () => { balloon.remove(); balloon = null; fab.click(); if (q) setTimeout(() => ask(q), 300); };
     root.append(balloon); const me = balloon; setTimeout(() => { if (balloon === me) { me.remove(); balloon = null; } }, 8000);
   }
@@ -3499,6 +3500,47 @@
   };
   root.querySelector('[data-a="pause"]').onclick = () => { if (audioEl && !audioEl.paused) { audioEl.pause(); return; } if (synth && synth.speaking) { synth.pause(); setTalk(false); } };
   root.querySelector('[data-a="stop"]').onclick = () => { stopAudio(); if (synth) synth.cancel(); queue = []; setTalk(false); sub.textContent = '▶ 를 누르면 오늘 시장을 브리핑해 드려요.'; root.classList.remove('brief'); };
+  /* ---------- 혼잣말 (몇 분마다, 무료·미리 써 둔 대사) ---------- */
+  function soloLine() {
+    const now = new Date(Date.now() + 9 * 3600e3), hr = now.getUTCHours(), dow = now.getUTCDay(), lv = bondLv();
+    const S = snap(), up = S.list.slice().sort((a, b) => b.d1 - a.d1)[0], dn = S.list.slice().sort((a, b) => a.d1 - b.d1)[0];
+    const W = watchStocks(), w = W.length ? W[Math.floor(Math.random() * W.length)] : null;
+    const pool = [
+      ['casual', '…선생님은 오늘도 차트만 보시네. 차라도 한 잔 내올까… 아, 아니, 혼잣말이에요.'],
+      ['casual', '서류 정리 끝. …칭찬 같은 건 안 해 주셔도 되는데. 정말로.'],
+      ['embarrassed', '리본 오늘 좀 비뚤어졌나… 서, 선생님 보고 계셨어요?!'],
+      ['casual', '숫자는 거짓말을 안 해서 좋아요. …사람 마음은 어렵지만.'],
+      ['proud', '오늘 자료 정리, 꽤 완벽했던 것 같아요. 흠흠.'],
+      ['worried', '선생님, 아까부터 한 자세로 계셨죠? 어깨 한 번 펴세요. …업무 효율 때문이에요.'],
+      ['casual', '커피 세 잔째… 저 말고 선생님 얘기예요. 물도 좀 드세요.'],
+      ['embarrassed', '혹시 제 혼잣말 다 들리는 거 아니죠…? 못 들은 걸로 해 주세요.'],
+      ['proud', '5억 목표라… 흥, 제가 옆에 있으니까 가능할지도요.'],
+      ['casual', '창밖 날씨 좋네요. 저는 여기서 숫자 세는 게 더 좋지만요. …진짜로요.'],
+      up ? ['surprised', '어머, ' + up.name + ' ' + (up.d1 >= 0 ? '+' : '') + up.d1.toFixed(1) + '%… 오늘 제일 신났네요.'] : null,
+      dn && dn.d1 < -2 ? ['worried', dn.name + '는 ' + dn.d1.toFixed(1) + '%… 괜히 제가 다 신경 쓰이네요.'] : null,
+      w ? ['proud', '선생님 관심 종목 ' + w.name + ', 오늘 ' + (w.d1 >= 0 ? '+' : '') + w.d1.toFixed(1) + '%. …따, 딱히 계속 지켜본 건 아니에요.'] : null,
+      hr < 9 ? ['casual', '아침부터 부지런하시네요. 저보다 먼저 출근하시면 곤란한데요.'] : null,
+      hr >= 12 && hr < 14 ? ['worried', '점심은 드셨어요? 굶으면서 차트 보는 건 비효율이에요.'] : null,
+      hr >= 15 && hr < 16 ? ['casual', '도쿄 장 마감 시간이네요. 오늘 하루도 수고했어요, 시장도… 선생님도.'] : null,
+      hr >= 22 || hr < 5 ? ['worried', '벌써 이 시간… 내일 장은 내일 봐도 돼요. 얼른 주무세요.'] : null,
+      dow === 0 || dow === 6 ? ['casual', '주말엔 장도 쉬는데… 선생님도 좀 쉬셨으면.'] : null,
+      lv >= 2 ? ['embarrassed', '요즘 선생님이랑 얘기하는 시간이… 조금, 아주 조금 기다려져요.'] : null,
+      lv >= 3 ? ['stock', '오늘도 와 주셔서 고마워요. …이번만 솔직하게 말한 거예요.'] : null,
+    ].filter(Boolean);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  let lastAct = Date.now(), soloCount = 0, soloTimer = null;
+  root.addEventListener('pointerdown', () => { lastAct = Date.now(); });
+  qi.addEventListener('input', () => { lastAct = Date.now(); });
+  function soloTick() {
+    soloTimer = setTimeout(soloTick, (4 + Math.random() * 4) * 60e3);
+    if (document.hidden || !pc() || soloCount >= 8 || Date.now() - lastAct < 90e3 || root.classList.contains('talking')) return;
+    const [mood, text] = soloLine(); soloCount++;
+    if (!box.hidden) { setMood(mood); bubble('bot', text, { mood, type: true, solo: true }); }
+    else { showBalloon(text, null, mood); }
+  }
+  soloTimer = setTimeout(soloTick, (3 + Math.random() * 2) * 60e3);
+  window.__vtbSolo = () => { lastAct = 0; soloCount = 0; clearTimeout(soloTimer); soloTick(); };
   fab.onclick = () => { fab.hidden = true; box.hidden = false; if (balloon) { balloon.remove(); balloon = null; } greet(); };
   root.querySelector('.vtb-x').onclick = (e) => { e.stopPropagation(); stopAudio(); if (synth) synth.cancel(); setTalk(false); box.hidden = true; fab.hidden = false; };
 })();
